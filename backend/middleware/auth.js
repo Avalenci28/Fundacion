@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import pool from '../config/database.js';
 
 export const protect = async (req, res, next) => {
   try {
@@ -17,10 +17,15 @@ export const protect = async (req, res, next) => {
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id);
-      if (!req.user) {
+      
+      const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [decoded.id]);
+      const user = result.rows[0];
+      
+      if (!user) {
         return res.status(401).json({ success: false, message: 'User not found' });
       }
+      
+      req.user = user;
       next();
     } catch (err) {
       return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
@@ -50,10 +55,14 @@ export const optionalAuth = async (req, res, next) => {
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.id);
+        
+        const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [decoded.id]);
+        req.user = result.rows[0] || null;
       } catch (err) {
         req.user = null;
       }
+    } else {
+      req.user = null;
     }
     
     next();

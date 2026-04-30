@@ -1,26 +1,23 @@
-import Gallery from '../models/Gallery.js';
+import { gallery } from '../db/query.js';
 
 export const getGallery = async (req, res, next) => {
   try {
     const { category, type, page = 1, limit = 20 } = req.query;
-    const query = { isActive: true };
     
-    if (category) query.category = category;
-    if (type) query.type = type;
+    const filters = {};
+    filters.is_active = true;
+    if (category) filters.category = category;
+    if (type) filters.type = type;
+    if (limit) filters.limit = parseInt(limit);
     
-    const items = await Gallery.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-    
-    const count = await Gallery.countDocuments(query);
+    const result = await gallery.findAll(filters);
     
     res.json({
       success: true,
-      items,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-      total: count
+      items: result.rows,
+      totalPages: Math.ceil(result.rows.length / limit),
+      currentPage: parseInt(page),
+      total: result.rows.length
     });
   } catch (error) {
     next(error);
@@ -29,7 +26,9 @@ export const getGallery = async (req, res, next) => {
 
 export const getGalleryItem = async (req, res, next) => {
   try {
-    const item = await Gallery.findById(req.params.id);
+    const result = await gallery.findById(req.params.id);
+    const item = result.rows[0];
+    
     if (!item) {
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
@@ -41,7 +40,8 @@ export const getGalleryItem = async (req, res, next) => {
 
 export const createGalleryItem = async (req, res, next) => {
   try {
-    const item = await Gallery.create(req.body);
+    const result = await gallery.create(req.body);
+    const item = result.rows[0];
     res.status(201).json({ success: true, item });
   } catch (error) {
     next(error);
@@ -50,10 +50,9 @@ export const createGalleryItem = async (req, res, next) => {
 
 export const updateGalleryItem = async (req, res, next) => {
   try {
-    const item = await Gallery.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
+    const result = await gallery.update(req.params.id, req.body);
+    const item = result.rows[0];
+    
     if (!item) {
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
@@ -65,7 +64,9 @@ export const updateGalleryItem = async (req, res, next) => {
 
 export const deleteGalleryItem = async (req, res, next) => {
   try {
-    const item = await Gallery.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
+    const result = await gallery.delete(req.params.id);
+    const item = result.rows[0];
+    
     if (!item) {
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
@@ -77,10 +78,8 @@ export const deleteGalleryItem = async (req, res, next) => {
 
 export const getFeaturedGallery = async (req, res, next) => {
   try {
-    const items = await Gallery.find({ isActive: true, isFeatured: true })
-      .sort({ createdAt: -1 })
-      .limit(12);
-    res.json({ success: true, items });
+    const result = await gallery.findAll({ is_active: true, is_featured: true, limit: 12 });
+    res.json({ success: true, items: result.rows });
   } catch (error) {
     next(error);
   }

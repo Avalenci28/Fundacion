@@ -76,7 +76,7 @@ const testConnection = async () => {
     console.log('🏓 Ping OK - DB responsive');
     
     // Cerrar
-    await mongoose.connection.close();
+    // await mongoose.connection.close();
     console.log('🔌 Conexión cerrada');
     
   } catch (error) {

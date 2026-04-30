@@ -1,9 +1,4 @@
-import Project from '../models/Project.js';
-import Event from '../models/Event.js';
-import User from '../models/User.js';
-import Post from '../models/Post.js';
-import Contact from '../models/Contact.js';
-import Gallery from '../models/Gallery.js';
+import pool from '../config/database.js';
 
 export const getStats = async (req, res, next) => {
   try {
@@ -13,52 +8,46 @@ export const getStats = async (req, res, next) => {
       totalUsers,
       totalPosts,
       totalContacts,
-      totalGallery
+      totalGallery,
+      upcomingEvents,
+      unreadContacts
     ] = await Promise.all([
-      Project.countDocuments({ isActive: true }),
-      Event.countDocuments({ isActive: true }),
-      User.countDocuments({ isActive: true }),
-      Post.countDocuments({ isPublished: true }),
-      Contact.countDocuments(),
-      Gallery.countDocuments({ isActive: true })
+      pool.query(`SELECT COUNT(*) FROM projects WHERE is_active = true`),
+      pool.query(`SELECT COUNT(*) FROM events WHERE is_active = true`),
+      pool.query(`SELECT COUNT(*) FROM users WHERE is_active = true`),
+      pool.query(`SELECT COUNT(*) FROM posts WHERE is_published = true`),
+      pool.query(`SELECT COUNT(*) FROM contacts`),
+      pool.query(`SELECT COUNT(*) FROM gallery WHERE is_active = true`),
+      pool.query(`SELECT COUNT(*) FROM events WHERE is_active = true AND date >= NOW()`),
+      pool.query(`SELECT COUNT(*) FROM contacts WHERE is_read = false`)
     ]);
     
-    const projectsByStatus = await Project.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]);
+    const projectsByStatus = await pool.query(
+      `SELECT status, COUNT(*) as count FROM projects WHERE is_active = true GROUP BY status`
+    );
     
-    const upcomingEvents = await Event.countDocuments({
-      isActive: true,
-      date: { $gte: new Date() }
-    });
+    const beneficiaries = await pool.query(
+      `SELECT SUM(beneficiaries) as total FROM projects WHERE is_active = true`
+    );
     
-    const totalBeneficiaries = await Project.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: null, total: { $sum: '$beneficiaries' } } }
-    ]);
-    
-    const recentContacts = await Contact.countDocuments({
-      isRead: false,
-      createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+    const statusObj = {};
+    projectsByStatus.rows.forEach(row => {
+      statusObj[row.status] = parseInt(row.count);
     });
     
     res.json({
       success: true,
       stats: {
-        totalProjects,
-        totalEvents,
-        totalUsers,
-        totalPosts,
-        totalContacts,
-        totalGallery,
-        upcomingEvents,
-        totalBeneficiaries: totalBeneficiaries[0]?.total || 0,
-        unreadContacts: recentContacts,
-        projectsByStatus: projectsByStatus.reduce((acc, curr) => {
-          acc[curr._id] = curr.count;
-          return acc;
-        }, {})
+        totalProjects: parseInt(totalProjects.rows[0].count),
+        totalEvents: parseInt(totalEvents.rows[0].count),
+        totalUsers: parseInt(totalUsers.rows[0].count),
+        totalPosts: parseInt(totalPosts.rows[0].count),
+        totalContacts: parseInt(totalContacts.rows[0].count),
+        totalGallery: parseInt(totalGallery.rows[0].count),
+        upcomingEvents: parseInt(upcomingEvents.rows[0].count),
+        totalBeneficiaries: parseInt(beneficiaries.rows[0].total) || 0,
+        unreadContacts: parseInt(unreadContacts.rows[0].count),
+        projectsByStatus: statusObj
       }
     });
   } catch (error) {
@@ -70,26 +59,23 @@ export const getPublicStats = async (req, res, next) => {
   try {
     const [
       totalProjects,
-      totalEvents,
+      upcomingEvents,
       totalUsers,
-      totalBeneficiaries
+      beneficiaries
     ] = await Promise.all([
-      Project.countDocuments({ isActive: true }),
-      Event.countDocuments({ isActive: true, date: { $gte: new Date() } }),
-      User.countDocuments({ isActive: true }),
-      Project.aggregate([
-        { $match: { isActive: true } },
-        { $group: { _id: null, total: { $sum: '$beneficiaries' } } }
-      ])
+      pool.query(`SELECT COUNT(*) FROM projects WHERE is_active = true`),
+      pool.query(`SELECT COUNT(*) FROM events WHERE is_active = true AND date >= NOW()`),
+      pool.query(`SELECT COUNT(*) FROM users WHERE is_active = true`),
+      pool.query(`SELECT SUM(beneficiaries) as total FROM projects WHERE is_active = true`)
     ]);
     
     res.json({
       success: true,
       stats: {
-        projectsCompleted: totalProjects,
-        eventsUpcoming: totalEvents,
-        volunteers: totalUsers,
-        peopleHelped: totalBeneficiaries[0]?.total || 0
+        projectsCompleted: parseInt(totalProjects.rows[0].count),
+        eventsUpcoming: parseInt(upcomingEvents.rows[0].count),
+        volunteers: parseInt(totalUsers.rows[0].count),
+        peopleHelped: parseInt(beneficiaries.rows[0].total) || 0
       }
     });
   } catch (error) {

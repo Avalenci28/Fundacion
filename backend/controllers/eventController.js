@@ -1,34 +1,42 @@
-import Event from '../models/Event.js';
+import { events } from '../db/query.js';
+import pool from '../config/database.js';
 
 export const getEvents = async (req, res, next) => {
   try {
     const { type, page = 1, limit = 10, upcoming, search } = req.query;
-    const query = { isActive: true };
     
-    if (type) query.type = type;
+    let query = `SELECT * FROM events WHERE is_active = true`;
+    const params = [];
+    let paramCount = 1;
+    
+    if (type) {
+      query += ` AND type = $${paramCount++}`;
+      params.push(type);
+    }
     if (upcoming === 'true') {
-      query.date = { $gte: new Date() };
+      query += ` AND date >= NOW()`;
     }
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+      query += ` AND (title ILIKE $${paramCount++} OR description ILIKE $${paramCount++})`;
+      params.push(`%${search}%`, `%${search}%`);
     }
     
-    const events = await Event.find(query)
-      .populate('attendees.user', 'name avatar')
-      .sort({ date: 1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    query += ` ORDER BY date ASC`;
+    query += ` LIMIT $${paramCount++} OFFSET $${paramCount++}`;
+    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
     
-    const count = await Event.countDocuments(query);
+    const result = await pool.query(query, params);
+    
+    // Get total count
+    let countQuery = `SELECT COUNT(*) FROM events WHERE is_active = true`;
+    const countResult = await pool.query(countQuery);
+    const count = parseInt(countResult.rows[0].count);
     
     res.json({
       success: true,
-      events,
+      events: result.rows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total: count
     });
   } catch (error) {
@@ -38,7 +46,9 @@ export const getEvents = async (req, res, next) => {
 
 export const getEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id).populate('attendees.user', 'name avatar');
+    const result = await events.findById(req.params.id);
+    const event = result.rows[0];
+    
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
@@ -50,7 +60,8 @@ export const getEvent = async (req, res, next) => {
 
 export const createEvent = async (req, res, next) => {
   try {
-    const event = await Event.create(req.body);
+    const result = await events.create(req.body);
+    const event = result.rows[0];
     res.status(201).json({ success: true, event });
   } catch (error) {
     next(error);
@@ -59,10 +70,9 @@ export const createEvent = async (req, res, next) => {
 
 export const updateEvent = async (req, res, next) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
+    const result = await events.update(req.params.id, req.body);
+    const event = result.rows[0];
+    
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
@@ -74,7 +84,9 @@ export const updateEvent = async (req, res, next) => {
 
 export const deleteEvent = async (req, res, next) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
+    const result = await events.delete(req.params.id);
+    const event = result.rows[0];
+    
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
@@ -86,22 +98,32 @@ export const deleteEvent = async (req, res, next) => {
 
 export const registerForEvent = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id);
+    // Get current event
+    const eventResult = await events.findById(req.params.id);
+    const event = eventResult.rows[0];
+    
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
     
-    const alreadyRegistered = event.attendees.find(a => a.user.toString() === req.user.id);
+    // Parse attendees array and check if already registered
+    const attendees = JSON.parse(event.attendees || '[]');
+    const alreadyRegistered = attendees.find(a => a.user === req.user.id);
     if (alreadyRegistered) {
       return res.status(400).json({ success: false, message: 'Already registered for this event' });
     }
     
-    if (event.attendees.length >= event.capacity) {
+    if (attendees.length >= event.capacity) {
       return res.status(400).json({ success: false, message: 'Event is full' });
     }
     
-    event.attendees.push({ user: req.user.id });
-    await event.save();
+    // Add attendee
+    attendees.push({ user: req.user.id, registeredAt: new Date().toISOString() });
+    
+    await pool.query(
+      `UPDATE events SET attendees = $1, updated_at = NOW() WHERE id = $2`,
+      [JSON.stringify(attendees), req.params.id]
+    );
     
     res.json({ success: true, message: 'Registered for event successfully' });
   } catch (error) {
@@ -111,10 +133,10 @@ export const registerForEvent = async (req, res, next) => {
 
 export const getFeaturedEvents = async (req, res, next) => {
   try {
-    const events = await Event.find({ isActive: true, isFeatured: true, date: { $gte: new Date() } })
-      .sort({ date: 1 })
-      .limit(6);
-    res.json({ success: true, events });
+    const result = await pool.query(
+      `SELECT * FROM events WHERE is_active = true AND is_featured = true AND date >= NOW() ORDER BY date ASC LIMIT 6`
+    );
+    res.json({ success: true, events: result.rows });
   } catch (error) {
     next(error);
   }

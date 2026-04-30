@@ -1,10 +1,10 @@
-import Contact from '../models/Contact.js';
+import { contacts } from '../db/query.js';
 
 export const submitContact = async (req, res, next) => {
   try {
     const { name, email, phone, subject, message } = req.body;
     
-    const contact = await Contact.create({
+    const result = await contacts.create({
       name,
       email,
       phone: phone || '',
@@ -12,6 +12,7 @@ export const submitContact = async (req, res, next) => {
       message
     });
     
+    const contact = result.rows[0];
     res.status(201).json({ success: true, message: 'Message sent successfully', contact });
   } catch (error) {
     next(error);
@@ -20,23 +21,20 @@ export const submitContact = async (req, res, next) => {
 
 export const getContacts = async (req, res, next) => {
   try {
-    const { isRead, page = 1, limit = 20 } = req.query;
-    const query = {};
+    const { is_read, page = 1, limit = 20 } = req.query;
     
-    if (isRead !== undefined) query.isRead = isRead === 'true';
+    const filters = {};
+    if (is_read !== undefined) filters.is_read = is_read === 'true';
+    if (limit) filters.limit = parseInt(limit);
     
-    const contacts = await Contact.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-    
-    const count = await Contact.countDocuments(query);
+    const result = await contacts.findAll(filters);
+    const count = result.rows.length;
     
     res.json({
       success: true,
-      contacts,
+      contacts: result.rows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total: count
     });
   } catch (error) {
@@ -46,7 +44,9 @@ export const getContacts = async (req, res, next) => {
 
 export const getContact = async (req, res, next) => {
   try {
-    const contact = await Contact.findById(req.params.id);
+    const result = await contacts.findById(req.params.id);
+    const contact = result.rows[0];
+    
     if (!contact) {
       return res.status(404).json({ success: false, message: 'Message not found' });
     }
@@ -58,11 +58,9 @@ export const getContact = async (req, res, next) => {
 
 export const markAsRead = async (req, res, next) => {
   try {
-    const contact = await Contact.findByIdAndUpdate(
-      req.params.id,
-      { isRead: true },
-      { new: true }
-    );
+    const result = await contacts.markAsRead(req.params.id);
+    const contact = result.rows[0];
+    
     if (!contact) {
       return res.status(404).json({ success: false, message: 'Message not found' });
     }
@@ -74,7 +72,9 @@ export const markAsRead = async (req, res, next) => {
 
 export const deleteContact = async (req, res, next) => {
   try {
-    const contact = await Contact.findByIdAndDelete(req.params.id);
+    const result = await contacts.delete(req.params.id);
+    const contact = result.rows[0];
+    
     if (!contact) {
       return res.status(404).json({ success: false, message: 'Message not found' });
     }

@@ -6,21 +6,17 @@ const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
 const morgan = require('morgan');
 require('dotenv').config();
-const mongoose = require('mongoose');
 
+// Import pool from config
+const { initPool, getPool } = require('./config/database');
 
-
+// Import database validation
 const validateAndConnectDB = require('./validateAndTestServer');
 
 const app = express();
 
-
-
 // ✅ Validación y conexión a la base de datos
 await validateAndConnectDB();
-
-
-
 
 // ✅ Configuración de middlewares centralizada
 const configApp = require('./config/app');
@@ -42,28 +38,24 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// ✅ Status Check
-app.get('/status', (req, res) => {
-  const readyState = mongoose.connection.readyState;
-  
-  if (readyState === 1) {
+// ✅ Status Check - Using PostgreSQL
+app.get('/status', async (req, res) => {
+  try {
+    const pool = getPool();
+    const result = await pool.query('SELECT NOW()');
     res.json({
       status: 'ok',
       db: 'connected',
-      host: mongoose.connection.host,
-      dbName: mongoose.connection.name
+      time: result.rows[0].now
     });
-  } else {
+  } catch (err) {
     res.json({
       status: 'error',
-      db: 'disconnected'
+      db: 'disconnected',
+      error: err.message
     });
   }
 });
-
-
-
-
 
 // ✅ Manejador de errores global
 const errorHandler = require('./middleware/errorHandler');
@@ -79,6 +71,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-
-

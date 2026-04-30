@@ -1,4 +1,5 @@
-import User from '../models/User.js';
+import pool from '../config/database.js';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 
@@ -9,7 +10,7 @@ const generateToken = (id) => {
 };
 
 const sendTokenResponse = (user, statusCode, res) => {
-  const token = generateToken(user._id);
+  const token = generateToken(user.id);
   
   const options = {
     expires: new Date(Date.now() + (process.env.JWT_EXPIRE || '7d').replace(/\D/g, '') * 24 * 60 * 60 * 1000 || 7 * 24 * 60 * 60 * 1000),
@@ -21,7 +22,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     success: true,
     token,
     user: {
-      id: user._id,
+      id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -39,20 +40,27 @@ export const register = async (req, res, next) => {
     
     const { name, email, password, phone, bio } = req.body;
     
-    const existingUser = await User.findOne({ email });
+    // Check if email already exists
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    const existingUser = result.rows[0];
     if (existingUser) {
-      return res.status(400).json({ success: false, message: 'Email already registered' });
+      return res.status(400).json({ success: false, message: 'El correo ya está registrado' });
     }
     
-    const user = await User.create({
-      name,
-      email,
-      password,
-      phone: phone || '',
-      bio: bio || ''
-    });
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
     
-    sendTokenResponse(user, 201, res);
+    // Insert new user
+    await pool.query(
+      'INSERT INTO users (name, email, password, created_at) VALUES ($1, $2, $3, NOW())',
+      [name, email, hashedPassword]
+    );
+    
+    // Return success response
+    res.json({ success: true, message: 'Usuario creado con éxito' });
   } catch (error) {
     next(error);
   }
@@ -67,17 +75,21 @@ export const login = async (req, res, next) => {
     
     const { email, password } = req.body;
     
-    const user = await User.findOne({ email }).select('+password');
+    // Find user by email
+    const result = await users.findByEmail(email);
+    const user = result.rows[0];
+    
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
     
-    const isMatch = await user.comparePassword(password);
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
     
-    if (!user.isActive) {
+    if (!user.is_active) {
       return res.status(401).json({ success: false, message: 'Account is deactivated' });
     }
     
@@ -91,7 +103,9 @@ export const adminLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     
-    const user = await User.findOne({ email }).select('+password');
+    const result = await users.findByEmail(email);
+    const user = result.rows[0];
+    
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -100,7 +114,7 @@ export const adminLogin = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Access denied. Admin only.' });
     }
     
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -113,7 +127,13 @@ export const adminLogin = async (req, res, next) => {
 
 export const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const result = await users.findById(req.user.id);
+    const user = result.rows[0];
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
     res.json({ success: true, user });
   } catch (error) {
     next(error);
@@ -124,12 +144,14 @@ export const updateProfile = async (req, res, next) => {
   try {
     const { name, phone, bio, avatar } = req.body;
     
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { name, phone, bio, avatar },
-      { new: true, runValidators: true }
-    );
+    const result = await users.update(req.user.id, {
+      name,
+      phone,
+      bio,
+      avatar
+    });
     
+    const user = result.rows[0];
     res.json({ success: true, user });
   } catch (error) {
     next(error);

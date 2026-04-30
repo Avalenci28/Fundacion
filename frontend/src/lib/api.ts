@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -66,11 +66,11 @@ export const publicApi = {
 // ===== AUTH API =====
 
 export const authApi = {
-  register: (data: any) => api.post('/register', data),
-  login: (data: any) => api.post('/login', data),
-  adminLogin: (data: any) => api.post('/admin/login', data),
+  register: (data: any) => api.post('/auth/register', data),
+  login: (data: any) => api.post('/auth/login', data),
+  adminLogin: (data: any) => api.post('/auth/admin/login', data),
   getMe: () => api.get('/auth/me'),
-  updateProfile: (data: any) => api.put('/profile', data),
+  updateProfile: (data: any) => api.put('/auth/profile', data),
   logout: () => api.get('/auth/logout'),
 }
 

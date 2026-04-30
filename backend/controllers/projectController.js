@@ -1,32 +1,46 @@
-import Project from '../models/Project.js';
+import { projects } from '../db/query.js';
+import pool from '../config/database.js';
 
 export const getProjects = async (req, res, next) => {
   try {
     const { status, category, page = 1, limit = 10, search } = req.query;
-    const query = { isActive: true };
     
-    if (status) query.status = status;
-    if (category) query.category = category;
+    let query = `SELECT * FROM projects WHERE is_active = true`;
+    const params = [];
+    let paramCount = 1;
+    
+    if (status) {
+      query += ` AND status = $${paramCount++}`;
+      params.push(status);
+    }
+    if (category) {
+      query += ` AND category = $${paramCount++}`;
+      params.push(category);
+    }
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+      query += ` AND (title ILIKE $${paramCount++} OR description ILIKE $${paramCount++})`;
+      params.push(`%${search}%`, `%${search}%`);
     }
     
-    const projects = await Project.find(query)
-      .populate('volunteers', 'name avatar')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    query += ` ORDER BY created_at DESC`;
+    query += ` LIMIT $${paramCount++} OFFSET $${paramCount++}`;
+    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
     
-    const count = await Project.countDocuments(query);
+    const result = await pool.query(query, params);
+    
+    // Get total count
+    let countQuery = `SELECT COUNT(*) FROM projects WHERE is_active = true`;
+    if (status) {
+      countQuery += ` AND status = $1`;
+    }
+    const countResult = await pool.query(countQuery, status ? [status] : []);
+    const count = parseInt(countResult.rows[0].count);
     
     res.json({
       success: true,
-      projects,
+      projects: result.rows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total: count
     });
   } catch (error) {
@@ -36,7 +50,9 @@ export const getProjects = async (req, res, next) => {
 
 export const getProject = async (req, res, next) => {
   try {
-    const project = await Project.findById(req.params.id).populate('volunteers', 'name avatar');
+    const result = await projects.findById(req.params.id);
+    const project = result.rows[0];
+    
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
@@ -48,7 +64,8 @@ export const getProject = async (req, res, next) => {
 
 export const createProject = async (req, res, next) => {
   try {
-    const project = await Project.create(req.body);
+    const result = await projects.create(req.body);
+    const project = result.rows[0];
     res.status(201).json({ success: true, project });
   } catch (error) {
     next(error);
@@ -57,10 +74,9 @@ export const createProject = async (req, res, next) => {
 
 export const updateProject = async (req, res, next) => {
   try {
-    const project = await Project.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
+    const result = await projects.update(req.params.id, req.body);
+    const project = result.rows[0];
+    
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
@@ -72,7 +88,9 @@ export const updateProject = async (req, res, next) => {
 
 export const deleteProject = async (req, res, next) => {
   try {
-    const project = await Project.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
+    const result = await projects.delete(req.params.id);
+    const project = result.rows[0];
+    
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
@@ -84,17 +102,27 @@ export const deleteProject = async (req, res, next) => {
 
 export const joinProject = async (req, res, next) => {
   try {
-    const project = await Project.findById(req.params.id);
+    // Get current project
+    const projResult = await projects.findById(req.params.id);
+    const project = projResult.rows[0];
+    
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
     
-    if (project.volunteers.includes(req.user.id)) {
+    // Parse volunteers array and check if already joined
+    const volunteers = JSON.parse(project.volunteers || '[]');
+    if (volunteers.includes(req.user.id)) {
       return res.status(400).json({ success: false, message: 'Already joined this project' });
     }
     
-    project.volunteers.push(req.user.id);
-    await project.save();
+    // Add volunteer
+    volunteers.push({ id: req.user.id, joinedAt: new Date().toISOString() });
+    
+    await pool.query(
+      `UPDATE projects SET volunteers = $1, updated_at = NOW() WHERE id = $2`,
+      [JSON.stringify(volunteers), req.params.id]
+    );
     
     res.json({ success: true, message: 'Joined project successfully' });
   } catch (error) {
@@ -104,10 +132,8 @@ export const joinProject = async (req, res, next) => {
 
 export const getFeaturedProjects = async (req, res, next) => {
   try {
-    const projects = await Project.find({ isActive: true, isFeatured: true })
-      .sort({ createdAt: -1 })
-      .limit(6);
-    res.json({ success: true, projects });
+    const result = await projects.findAll({ is_active: true, is_featured: true, limit: 6 });
+    res.json({ success: true, projects: result.rows });
   } catch (error) {
     next(error);
   }

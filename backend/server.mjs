@@ -6,7 +6,6 @@ import cookieParser from 'cookie-parser';
 import hpp from 'hpp';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,26 +15,22 @@ const __dirname = path.dirname(__filename);
 // Cargar .env ESM
 dotenv.config({ path: new URL('./.env', import.meta.url).pathname });
 
-const { validateAndConnectDB } = await import('./validateAndTestServer.js');
+// Import functions from database
+import { initPool, getPool } from './config/database.js';
 
 const app = express();
 
-// ✅ Status Check
-app.get('/status', (req, res) => {
-  const readyState = mongoose.connection.readyState;
-  
-  if (readyState === 1) {
-    res.json({
-      status: 'ok',
-      db: 'connected',
-      host: mongoose.connection.host,
-      dbName: mongoose.connection.name
-    });
-  } else {
-    res.json({
-      status: 'error',
-      db: 'disconnected'
-    });
+// ✅ Status Check - PostgreSQL
+app.get('/status', async (req, res) => {
+  try {
+    const pool = getPool();
+    if (!pool) {
+      return res.json({ status: "error", db: "not initialized" });
+    }
+    const result = await pool.query('SELECT NOW()');
+    res.json({ status: "ok", db: "connected", time: result.rows[0].now });
+  } catch (err) {
+    res.json({ status: "error", db: "disconnected", error: err.message });
   }
 });
 
@@ -44,10 +39,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-const startServer = async () => {
+async function startServer() {
   try {
-    // ✅ Validación y conexión a la base de datos
-// await validateAndConnectDB();
+    // Initialize PostgreSQL pool
+    const pool = await initPool();
+    
+    // Test PostgreSQL connection
+    const result = await pool.query('SELECT NOW()');
+    console.log('✅ PostgreSQL Connected:', result.rows[0].now);
     
     // ✅ Configuración de middlewares centralizada
     const configApp = (await import('./config/app.js')).default;
@@ -79,10 +78,10 @@ const startServer = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
 
-  } catch (error) {
-    console.error('❌ Error iniciando servidor:', error);
+  } catch (err) {
+    console.error('❌ Error iniciando servidor:', err);
     process.exit(1);
   }
-};
+}
 
 startServer();
