@@ -1,4 +1,4 @@
-import { Pool, Client } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,68 +30,39 @@ if (envPath) {
   dotenv.config();
 }
 
-// Config
-const config = {
-  host: process.env.PGHOST || 'localhost',
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'admin123',
-  database: process.env.PGDATABASE || 'malambo_sonrie',
+// Supabase Session Pooler (IPv4) Configuration
+// Connection Pool Settings for stability (max 15 connections for Nano plan)
+const pool = new Pool({
+  host: process.env.PGHOST || 'aws-1-us-west-2.pooler.supabase.com',
+  user: process.env.PGUSER || 'postgres.fulgeedluudhpmglteqp',
+  password: process.env.PGPASSWORD || '1044616328base',
+  database: process.env.PGDATABASE || 'postgres',
   port: parseInt(process.env.PGPORT) || 5432,
-};
-
-console.log('🔧 Using config:', {
-  host: config.host,
-  user: config.user,
-  password: config.password ? '****' : 'EMPTY',
-  database: config.database,
-  port: config.port
+  // Connection Pool Settings for stability (max 15 connections for Nano plan)
+  max: 15,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+  // SSL Configuration for security
+  ssl: { 
+    rejectUnauthorized: false,
+    // Force TLS/SSL for Supabase
+    require: true
+  }
 });
 
-// Function to create database if not exists
-async function createDatabaseIfNotExists() {
-  const client = new Client({
-    host: config.host,
-    user: config.user,
-    password: config.password,
-    database: 'postgres',
-    port: config.port,
-  });
-  
-  try {
-    await client.connect();
-    
-    const res = await client.query(
-      "SELECT 1 FROM pg_database WHERE datname = $1",
-      [config.database]
-    );
-    
-    if (res.rows.length === 0) {
-      console.log(`📦 Creating database: ${config.database}`);
-      await client.query(`CREATE DATABASE ${config.database}`);
-      console.log(`✅ Database ${config.database} created!`);
-    } else {
-      console.log(`✅ Database ${config.database} already exists`);
-    }
-  } catch (err) {
-    console.error('❌ Error checking/creating database:', err.message);
-  } finally {
-    await client.end();
-  }
-}
+console.log('🔧 PostgreSQL pool configured for Supabase Session Pooler:');
+console.log('   Host:', process.env.PGHOST || 'aws-1-us-west-2.pooler.supabase.com');
+console.log('   User:', process.env.PGUSER || 'postgres.fulgeedluudhpmglteqp');
+console.log('   Max Connections:', 15);
 
-// Initialize pool
-let pool;
-
-export async function initPool() {
-  await createDatabaseIfNotExists();
-  pool = new Pool(config);
-  return pool;
-}
-
-// Export pool getter to avoid undefined
+// Export getPool function to get the pool instance
 export function getPool() {
   return pool;
 }
 
-// Export default pool (may be undefined until initPool is called)
+// Export initPool for compatibility (returns the already initialized pool)
+export function initPool() {
+  return pool;
+}
+
 export default pool;

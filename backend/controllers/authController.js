@@ -1,6 +1,15 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env with explicit path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 import { validationResult } from 'express-validator';
 
 const generateToken = (id) => {
@@ -75,8 +84,11 @@ export const login = async (req, res, next) => {
     
     const { email, password } = req.body;
     
-    // Find user by email
-    const result = await users.findByEmail(email);
+    // Find user by email - using pool.query
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
     const user = result.rows[0];
     
     if (!user) {
@@ -103,7 +115,11 @@ export const adminLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     
-    const result = await users.findByEmail(email);
+    // Find user by email - using pool.query
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
     const user = result.rows[0];
     
     if (!user) {
@@ -127,7 +143,11 @@ export const adminLogin = async (req, res, next) => {
 
 export const getMe = async (req, res, next) => {
   try {
-    const result = await users.findById(req.user.id);
+    // Find user by id - using pool.query
+    const result = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
+      [req.user.id]
+    );
     const user = result.rows[0];
     
     if (!user) {
@@ -144,12 +164,11 @@ export const updateProfile = async (req, res, next) => {
   try {
     const { name, phone, bio, avatar } = req.body;
     
-    const result = await users.update(req.user.id, {
-      name,
-      phone,
-      bio,
-      avatar
-    });
+    // Update user profile - using pool.query
+    const result = await pool.query(
+      'UPDATE users SET name = $1, phone = $2, bio = $3, avatar = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
+      [name, phone, bio, avatar, req.user.id]
+    );
     
     const user = result.rows[0];
     res.json({ success: true, user });

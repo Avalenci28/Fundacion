@@ -6,58 +6,95 @@ import { publicApi } from '@/lib/api';
 
 interface Project {
   _id: string;
+  id: number;
   title: string;
-  shortDescription: string;
+  description: string;
   image: string;
-  status: 'Completado' | 'En proceso' | 'Próximamente';
+  status: string;
   category: string;
   beneficiaries: number;
+  is_featured: boolean;
+  goal_amount: string;
+  raised_amount: string;
 }
 
 export default function ProjectsSection() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'Completado' | 'En proceso' | 'Próximamente'>('Completado');
+  const [activeTab, setActiveTab] = useState<'featured' | 'all'>('featured');
 
   useEffect(() => {
-    publicApi.getProjects({ 
-      status: activeTab, 
-      limit: 6,
-      sort: '-createdAt'
-    }).then(response => {
-      setProjects(response.data.projects);
-    }).catch(() => {
-      // Fallback demo projects
-      setProjects([
-        {
-          _id: '1',
-          title: 'Parque de la Esperanza',
-          shortDescription: 'Transformación completa del parque central con áreas infantiles y espacios para adultos mayores.',
-          image: 'https://images.unsplash.com/photo-1598119517754-2f151271c9d9?w=800&fit=crop',
-          status: 'Completado',
-          category: 'ambiental',
-          beneficiaries: 1200
-        },
-        {
-          _id: '2',
-          title: 'Taller de Arte para Niños',
-          shortDescription: 'Programa educativo artístico que beneficia a 150 niños de primaria con materiales donados.',
-          image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&fit=crop',
-          status: 'En proceso',
-          category: 'educativo',
-          beneficiaries: 150
-        },
-        {
-          _id: '3',
-          title: 'Limpieza del Río Malambo',
-          shortDescription: 'Campaña masiva de limpieza con participación de toda la comunidad.',
-          image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&fit=crop',
-          status: 'Próximamente',
-          category: 'ambiental',
-          beneficiaries: 800
+    // Fetch from PostgreSQL backend
+    const fetchProjects = async () => {
+      try {
+        let response;
+        if (activeTab === 'featured') {
+          // Get featured projects from backend
+          response = await fetch('http://localhost:5000/api/projects');
+          const data = await response.json();
+          if (data.success && data.projects) {
+            // Filter featured projects
+            const featured = data.projects.filter((p: Project) => p.is_featured);
+            setProjects(featured.slice(0, 3));
+          }
+        } else {
+          // Get all projects
+          response = await fetch('http://localhost:5000/api/projects');
+          const data = await response.json();
+          if (data.success && data.projects) {
+            setProjects(data.projects.slice(0, 6));
+          }
         }
-      ]);
-    }).finally(() => setLoading(false));
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        // Fallback demo projects
+        setProjects([
+          {
+            _id: '1',
+            id: 1,
+            title: 'Parque de la Esperanza',
+            description: 'Transformación completa del parque central con áreas infantiles y espacios para adultos mayores.',
+            image: 'https://images.unsplash.com/photo-1598119517754-2f151271c9d9?w=800&fit=crop',
+            status: 'En proceso',
+            category: 'ambiental',
+            beneficiaries: 1200,
+            is_featured: true,
+            goal_amount: '50000',
+            raised_amount: '25000'
+          },
+          {
+            _id: '2',
+            id: 2,
+            title: 'Taller de Arte para Niños',
+            description: 'Programa educativo artístico que beneficia a 150 niños de primaria con materiales donados.',
+            image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&fit=crop',
+            status: 'En proceso',
+            category: 'educativo',
+            beneficiaries: 150,
+            is_featured: false,
+            goal_amount: '15000',
+            raised_amount: '7500'
+          },
+          {
+            _id: '3',
+            id: 3,
+            title: 'Limpieza del Río Malambo',
+            description: 'Campaña masiva de limpieza con participación de toda la comunidad.',
+            image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&fit=crop',
+            status: 'Próximamente',
+            category: 'ambiental',
+            beneficiaries: 800,
+            is_featured: false,
+            goal_amount: '8000',
+            raised_amount: '0'
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProjects();
   }, [activeTab]);
 
   const statusColors = {
@@ -84,21 +121,21 @@ export default function ProjectsSection() {
           </p>
         </motion.div>
 
-        {/* Filter Tabs */}
+{/* Filter Tabs */}
         <div className="flex flex-wrap justify-center gap-4 mb-16">
-          {(['Completado', 'En proceso', 'Próximamente'] as const).map(status => (
+          {(['featured', 'all'] as const).map(tab => (
             <motion.button
-              key={status}
-              onClick={() => setActiveTab(status)}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               className={`px-8 py-3 rounded-full font-semibold text-lg transition-all duration-300 ${
-                activeTab === status
+                activeTab === tab
                   ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/25 scale-105'
                   : 'bg-white/50 text-gray-700 hover:bg-white hover:shadow-md border border-gray-200 hover:scale-105'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {status}
+              {tab === 'featured' ? '⭐ Destacados' : '📋 Todos'}
             </motion.button>
           ))}
         </div>
@@ -154,15 +191,15 @@ export default function ProjectsSection() {
                     {project.title}
                   </h3>
                   
-                  <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
-                    {project.shortDescription}
+<p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+                    {project.description}
                   </p>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
                         <span>👥</span>
-                        <span>{project.beneficiaries.toLocaleString()}</span>
+                        <span>{(project.beneficiaries || 100).toLocaleString()}</span>
                       </div>
                     </div>
                     

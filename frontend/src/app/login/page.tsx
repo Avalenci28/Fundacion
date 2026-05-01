@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Heart, Lock, Mail } from 'lucide-react'
+import { Eye, EyeOff, Heart, Lock, Mail, Shield } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { authApi } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -21,12 +21,13 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await authApi.login(formData)
+      // Use admin login endpoint
+      const response = await authApi.adminLogin(formData)
       const { user, token } = response.data
       setUser(user, token)
       localStorage.setItem('token', token)
-      toast.success('¡Bienvenido de vuelta!')
-      router.push('/')
+      toast.success('¡Bienvenido Administrador!')
+      router.push('/admin')
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al iniciar sesión')
     } finally {
@@ -44,13 +45,13 @@ export default function LoginPage() {
         >
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/30 mb-4">
-              <Heart className="w-8 h-8 text-primary-600" />
+              <Shield className="w-8 h-8 text-primary-600" />
             </div>
             <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-              Bienvenido de vuelta
+              Acceso Administrador
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Inicia sesión para continuar
+              Ingresa tus credenciales de admin
             </p>
           </div>
 
@@ -66,7 +67,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                  placeholder="tu@email.com"
+                  placeholder="admin@tuorganizacion.org"
                   required
                 />
               </div>
@@ -101,15 +102,15 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-primary-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión Admin'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400">
-              ¿No tienes cuenta?{' '}
-              <Link href="/registro" className="text-primary-500 font-semibold hover:underline">
-                Regístrate
+              ¿Quieres participar?{' '}
+              <Link href="/participar" className="text-primary-500 font-semibold hover:underline">
+                Regístrate como voluntario
               </Link>
             </p>
           </div>

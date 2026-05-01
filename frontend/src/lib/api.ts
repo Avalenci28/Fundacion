@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -56,8 +56,11 @@ export const publicApi = {
   // Stats
   getPublicStats: () => api.get('/stats/public'),
 
-  // Contact
+// Contact
   submitContact: (data: any) => api.post('/contact', data),
+
+  // Participation
+  submitParticipation: (data: any) => api.post('/participation', data),
 
   // Volunteers
   getVolunteers: (params?: any) => api.get('/volunteers', { params }),
@@ -127,10 +130,16 @@ export const adminApi = {
   updateGalleryItem: (id: string, data: any) => api.put(`/admin/gallery/${id}`, data),
   deleteGalleryItem: (id: string) => api.delete(`/admin/gallery/${id}`),
 
-  // Contacts
+// Contacts
   getAllContacts: (params?: any) => api.get('/admin/contacts', { params }),
   markContactAsRead: (id: string) => api.put(`/admin/contacts/${id}/read`),
   deleteContact: (id: string) => api.delete(`/admin/contacts/${id}`),
+
+  // Participations
+  getAllParticipations: (params?: any) => api.get('/admin/participations', { params }),
+  approveParticipation: (id: string) => api.put(`/admin/participations/${id}/approve`),
+  rejectParticipation: (id: string) => api.put(`/admin/participations/${id}/reject`),
+  deleteParticipation: (id: string) => api.delete(`/admin/participations/${id}`),
 }
 
 export default api

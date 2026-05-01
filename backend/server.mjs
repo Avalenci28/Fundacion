@@ -12,8 +12,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Cargar .env ESM
-dotenv.config({ path: new URL('./.env', import.meta.url).pathname });
+// Cargar .env ESM con ruta absoluta
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+// Debug: Verify JWT_SECRET is loaded
+console.log('🔑 JWT_SECRET:', process.env.JWT_SECRET ? '✅ LOADED' : '❌ NOT FOUND');
+console.log('⏰ JWT_EXPIRE:', process.env.JWT_EXPIRE || '7d (default)');
 
 // Import functions from database
 import { initPool, getPool } from './config/database.js';
@@ -52,13 +56,14 @@ async function startServer() {
     const configApp = (await import('./config/app.js')).default;
     configApp(app);
 
-    // ✅ Rutas principales
+// ✅ Rutas principales
     app.use('/api/auth', (await import('./routes/auth.js')).default);
     app.use('/api/projects', (await import('./routes/projects.js')).default);
     app.use('/api/events', (await import('./routes/events.js')).default);
     app.use('/api/posts', (await import('./routes/posts.js')).default);
     app.use('/api/gallery', (await import('./routes/gallery.js')).default);
     app.use('/api/contact', (await import('./routes/contact.js')).default);
+    app.use('/api/participation', (await import('./routes/participation.js')).default);
     app.use('/api/admin', (await import('./routes/admin.js')).default);
     app.use('/api/stats', (await import('./routes/stats.js')).default);
     app.use('/api/volunteers', (await import('./routes/volunteers.js')).default);

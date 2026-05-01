@@ -26,6 +26,12 @@ import {
   deleteContact
 } from '../controllers/adminController.js';
 
+import {
+  getAllParticipations,
+  updateParticipationStatus,
+  deleteParticipation
+} from '../controllers/participationController.js';
+
 const router = express.Router();
 
 // All admin routes require authentication + admin role
@@ -67,5 +73,10 @@ router.delete('/gallery/:id', deleteGalleryItem);
 router.get('/contacts', getAllContacts);
 router.put('/contacts/:id/read', markContactAsRead);
 router.delete('/contacts/:id', deleteContact);
+
+// Participations
+router.get('/participations', getAllParticipations);
+router.put('/participations/:id/status', updateParticipationStatus);
+router.delete('/participations/:id', deleteParticipation);
 
 export default router;

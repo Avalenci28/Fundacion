@@ -1,17 +1,27 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
-const hpp = require('hpp');
-const morgan = require('morgan');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
+import hpp from 'hpp';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env with explicit path BEFORE any other imports
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+// Debug: log JWT_SECRET loaded
+console.log('🔑 JWT_SECRET:', process.env.JWT_SECRET ? '✅ Loaded' : '❌ NOT FOUND');
 
 // Import pool from config
-const { initPool, getPool } = require('./config/database');
+import { initPool, getPool } from './config/database.js';
 
 // Import database validation
-const validateAndConnectDB = require('./validateAndTestServer');
+import validateAndConnectDB from './validateAndTestServer.js';
 
 const app = express();
 
@@ -19,19 +29,19 @@ const app = express();
 await validateAndConnectDB();
 
 // ✅ Configuración de middlewares centralizada
-const configApp = require('./config/app');
+const configApp = (await import('./config/app.js')).default;
 configApp(app);
 
 // ✅ Rutas principales
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/events', require('./routes/events'));
-app.use('/api/posts', require('./routes/posts'));
-app.use('/api/gallery', require('./routes/gallery'));
-app.use('/api/contact', require('./routes/contact'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/stats', require('./routes/stats'));
-app.use('/api/volunteers', require('./routes/volunteers'));
+app.use('/api/auth', (await import('./routes/auth.js')).default);
+app.use('/api/projects', (await import('./routes/projects.js')).default);
+app.use('/api/events', (await import('./routes/events.js')).default);
+app.use('/api/posts', (await import('./routes/posts.js')).default);
+app.use('/api/gallery', (await import('./routes/gallery.js')).default);
+app.use('/api/contact', (await import('./routes/contact.js')).default);
+app.use('/api/admin', (await import('./routes/admin.js')).default);
+app.use('/api/stats', (await import('./routes/stats.js')).default);
+app.use('/api/volunteers', (await import('./routes/volunteers.js')).default);
 
 // ✅ Health Check
 app.get('/api/health', (req, res) => {
@@ -58,7 +68,7 @@ app.get('/status', async (req, res) => {
 });
 
 // ✅ Manejador de errores global
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = (await import('./middleware/errorHandler.js')).default;
 app.use(errorHandler);
 
 // ✅ Ruta no encontrada

@@ -112,7 +112,7 @@ export function Navbar() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {user ? (
+{user ? (
               <div className="relative group">
                 <button className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
                   isScrolled
@@ -158,7 +158,7 @@ export function Navbar() {
                   Ingresar
                 </Link>
                 <Link
-                  href="/registro"
+                  href="/participar"
                   className="px-5 py-2 rounded-full text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/30"
                 >
                   Participar
@@ -223,7 +223,7 @@ export function Navbar() {
                       Cerrar Sesión
                     </button>
                   </>
-                ) : (
+) : (
                   <>
                     <Link
                       href="/login"
@@ -232,7 +232,7 @@ export function Navbar() {
                       Ingresar
                     </Link>
                     <Link
-                      href="/registro"
+                      href="/participar"
                       className="block px-4 py-3 rounded-xl text-sm bg-primary-500 text-white text-center"
                     >
                       Participar

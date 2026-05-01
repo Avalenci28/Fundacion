@@ -2,13 +2,13 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { publicApi } from '@/lib/api';
 
 interface Stats {
-  projectsCompleted: number;
-  eventsUpcoming: number;
-  volunteers: number;
-  peopleHelped: number;
+  projects: string;
+  events: string;
+  volunteers: string;
+  users: string;
+  totalProjects: string;
 }
 
 export default function HeroSection() {
@@ -16,20 +16,36 @@ export default function HeroSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    publicApi.getPublicStats()
-      .then((response) => {
-        setStats(response.data.stats);
-      })
-      .catch(() => {
+    // Fetch from PostgreSQL backend
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/stats/public');
+        const data = await response.json();
+        if (data.success && data.stats) {
+          setStats({
+            projects: data.stats.projects || '0',
+            events: data.stats.events || '0',
+            volunteers: data.stats.volunteers || '0',
+            users: data.stats.users || '0',
+            totalProjects: data.stats.totalProjects || '0'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
         // Fallback stats
         setStats({
-          projectsCompleted: 25,
-          eventsUpcoming: 8,
-          volunteers: 150,
-          peopleHelped: 5000
+          projects: '25',
+          events: '8',
+          volunteers: '150',
+          users: '4',
+          totalProjects: '50000'
         });
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchStats();
   }, []);
 
   return (
@@ -89,10 +105,10 @@ export default function HeroSection() {
                 className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-500 hover:scale-105"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-3xl md:text-4xl font-black text-pink-300 mb-2">
-                  {stats.projectsCompleted.toLocaleString()}
+<div className="text-3xl md:text-4xl font-black text-pink-300 mb-2">
+                  {stats.projects}
                 </div>
-                <div className="text-white/90 text-sm font-medium">Proyectos Realizados</div>
+                <div className="text-white/90 text-sm font-medium">Proyectos</div>
               </motion.div>
 
               <motion.div 
@@ -100,9 +116,9 @@ export default function HeroSection() {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl md:text-4xl font-black text-purple-300 mb-2">
-                  {stats.eventsUpcoming.toLocaleString()}
+                  {stats.events}
                 </div>
-                <div className="text-white/90 text-sm font-medium">Próximos Eventos</div>
+                <div className="text-white/90 text-sm font-medium">Eventos</div>
               </motion.div>
 
               <motion.div 
@@ -110,7 +126,7 @@ export default function HeroSection() {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl md:text-4xl font-black text-pink-300 mb-2">
-                  {stats.volunteers.toLocaleString()}
+                  {stats.volunteers}
                 </div>
                 <div className="text-white/90 text-sm font-medium">Voluntarios</div>
               </motion.div>
@@ -120,9 +136,9 @@ export default function HeroSection() {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl md:text-4xl font-black text-purple-300 mb-2">
-                  {stats.peopleHelped.toLocaleString()}
+                  {stats.users}
                 </div>
-                <div className="text-white/90 text-sm font-medium">Personas Ayudadas</div>
+                <div className="text-white/90 text-sm font-medium">Usuarios</div>
               </motion.div>
             </motion.div>
           )}
