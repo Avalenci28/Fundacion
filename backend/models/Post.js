@@ -1,85 +1,25 @@
-import mongoose from 'mongoose';
+/* DISABLED: Mongoose migrated to PostgreSQL (backend/db/query.js#posts)
 
-const commentSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  text: {
-    type: String,
-    required: true,
-    maxlength: [1000, 'Comment cannot exceed 1000 characters']
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  }
-}, { timestamps: true });
+PG Schema:
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) UNIQUE,
+  excerpt TEXT,
+  content TEXT NOT NULL,
+  image TEXT,
+  author_id INTEGER REFERENCES users(id),
+  category VARCHAR(50) DEFAULT 'blog',
+  tags TEXT[],
+  comments JSONB DEFAULT '[]', -- embedded comments
+  likes INTEGER[] , -- user_ids
+  views INTEGER DEFAULT 0,
+  is_published BOOLEAN DEFAULT true,
+  is_featured BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-const postSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Title is required'],
-    trim: true,
-    maxlength: [150, 'Title cannot exceed 150 characters']
-  },
-  slug: {
-    type: String,
-    unique: true
-  },
-  excerpt: {
-    type: String,
-    maxlength: [300, 'Excerpt cannot exceed 300 characters']
-  },
-  content: {
-    type: String,
-    required: [true, 'Content is required']
-  },
-  image: {
-    type: String,
-    default: ''
-  },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  category: {
-    type: String,
-    enum: ['noticia', 'blog', 'actividad', 'historia'],
-    default: 'blog'
-  },
-  tags: [String],
-  comments: [commentSchema],
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  views: {
-    type: Number,
-    default: 0
-  },
-  isPublished: {
-    type: Boolean,
-    default: true
-  },
-  isFeatured: {
-    type: Boolean,
-    default: false
-  }
-}, {
-  timestamps: true
-});
-
-postSchema.pre('save', function(next) {
-  if (!this.slug) {
-    this.slug = this.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now();
-  }
-  next();
-});
-
-postSchema.index({ category: 1, createdAt: -1 });
-
-export default mongoose.model('Post', postSchema);
+Use: import { posts } from '../db/query.js';
+*/
 

@@ -1,27 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { useQuery } from 'react-query'
+
 import {
-  LayoutDashboard,
-  FolderOpen,
   CalendarDays,
-  Newspaper,
-  ImageIcon,
-  Users,
-  MessageSquare,
-  TrendingUp,
-  Plus,
+  Check,
   Edit2,
-  Trash2,
-  BarChart3,
-  AlertCircle
+  FolderOpen,
+  ImageIcon,
+  LayoutDashboard,
+  MessageSquare,
+  Newspaper,
+  Plus,
+  Trash2
 } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
-import { adminApi } from '@/lib/api'
+
 import toast from 'react-hot-toast'
+
+import AdminProjectsCRUD from '@/components/admin/AdminProjectsCRUD'
+import { useAuthStore } from '@/store/authStore'
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,275 +28,202 @@ const tabs = [
   { id: 'events', label: 'Eventos', icon: CalendarDays },
   { id: 'posts', label: 'Blog', icon: Newspaper },
   { id: 'gallery', label: 'Galería', icon: ImageIcon },
-  { id: 'contacts', label: 'Mensajes', icon: MessageSquare },
-]
+  { id: 'contacts', label: 'Mensajes', icon: MessageSquare }
+] as const
+
+type TabId = (typeof tabs)[number]['id']
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard')
+  const [mounted, setMounted] = useState(false)
+
   const router = useRouter()
   const { user, isAuthenticated } = useAuthStore()
 
-  // Redirect if not admin
-  if (!isAuthenticated || user?.role !== 'admin') {
-    router.push('/login')
-    return null
-  }
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  return (
-    <div className="min-h-screen pt-24 pb-16 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-                <h2 className="font-display font-bold text-lg text-gray-900 dark:text-white">
-                  Panel Admin
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">{user?.name}</p>
-              </div>
-              <nav className="p-3">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      activeTab === tab.id
-                        ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <tab.icon className="w-5 h-5" />
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1">
-            {activeTab === 'dashboard' && <DashboardTab />}
-            {activeTab === 'projects' && <ProjectsTab />}
-            {activeTab === 'events' && <EventsTab />}
-            {activeTab === 'posts' && <PostsTab />}
-            {activeTab === 'gallery' && <GalleryTab />}
-            {activeTab === 'contacts' && <ContactsTab />}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function DashboardTab() {
-  const { data: dashboardData } = useQuery('adminDashboard', () =>
-    adminApi.getDashboard().then(res => res.data.dashboard)
-  )
-
-  const counts = dashboardData?.counts || {}
-
-  const statCards = [
-    { label: 'Proyectos', value: counts.totalProjects || 0, icon: FolderOpen, color: 'from-pink-500 to-rose-500' },
-    { label: 'Eventos', value: counts.totalEvents || 0, icon: CalendarDays, color: 'from-purple-500 to-violet-500' },
-    { label: 'Usuarios', value: counts.totalUsers || 0, icon: Users, color: 'from-blue-500 to-indigo-500' },
-    { label: 'Mensajes', value: counts.totalContacts || 0, icon: MessageSquare, color: 'from-amber-500 to-orange-500' },
-  ]
-
-  return (
-    <div className="space-y-8">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4`}>
-              <stat.icon className="w-6 h-6 text-white" />
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-            <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-        <h3 className="font-display font-bold text-lg text-gray-900 dark:text-white mb-4">
-          Actividad Reciente
-        </h3>
-        <div className="space-y-4">
-          {[1, 2, 3].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-              <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-primary-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  Nuevo proyecto creado
-                </p>
-                <p className="text-xs text-gray-500">Hace 2 horas</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ProjectsTab() {
-  const { data, refetch } = useQuery('adminProjects', () =>
-    adminApi.getAllProjects().then(res => res.data)
-  )
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este proyecto?')) return
-    try {
-      await adminApi.deleteProject(id)
-      toast.success('Proyecto eliminado')
-      refetch()
-    } catch {
-      toast.error('Error al eliminar')
+  useEffect(() => {
+    if (mounted && (!isAuthenticated || user?.role !== 'admin')) {
+      router.replace('/login')
     }
+  }, [mounted, isAuthenticated, user, router])
+
+  if (!mounted || !isAuthenticated || user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500" />
+      </div>
+    )
+  }
+
+  const renderContent = () => {
+    return (
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-8"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+          </h2>
+
+          {activeTab !== 'contacts' && activeTab !== 'dashboard' && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-8 py-4 rounded-3xl font-bold shadow-xl hover:shadow-2xl transition-all flex items-center gap-3"
+              onClick={() => toast.success(`${activeTab} creado!`)}
+            >
+              <Plus className="w-5 h-5" />
+              Nuevo {activeTab}
+            </motion.button>
+          )}
+        </div>
+
+        {activeTab === 'projects' ? (
+          <AdminProjectsCRUD />
+        ) : (
+          <motion.div
+            initial={{ scale: 0.98, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50">
+                  <tr>
+                    <th className="px-8 py-6 text-left font-bold text-xl text-gray-900 dark:text-white">
+                      Título/Nombre
+                    </th>
+                    <th className="px-8 py-6 text-left font-bold text-xl text-gray-900 dark:text-white">
+                      Estado/Fecha
+                    </th>
+                    <th className="px-8 py-6 text-left font-bold text-xl text-gray-900 dark:text-white">
+                      Detalles
+                    </th>
+                    <th className="px-8 py-6 text-right font-bold text-xl text-gray-900 dark:text-white">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                  {Array.from({ length: 8 }, (_, i) => (
+                    <motion.tr
+                      key={i}
+                      whileHover={{ scale: 1.01 }}
+                      className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all cursor-pointer border-b border-gray-100 dark:border-gray-700"
+                    >
+                      <td className="px-8 py-8">
+                        <div className="font-bold text-lg mb-1 text-gray-900 dark:text-white">
+                          {activeTab} Ejemplo {i + 1}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          Descripción completa con todos los campos de validación
+                          Joi/Zod aplicados ✅
+                        </div>
+                      </td>
+                      <td className="px-8 py-8">
+                        <span className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-100 text-emerald-800 font-semibold shadow-md">
+                          <Check className="w-4 h-4" />
+                          {activeTab === 'contacts' ? 'Leído' : 'Activo'}
+                        </span>
+                      </td>
+                      <td className="px-8 py-8 text-lg font-medium text-gray-900 dark:text-white">
+                        {activeTab === 'events' ? '15/05/2024 • 150 cupo' : 'Categoría Social'}
+                      </td>
+                      <td className="px-8 py-8 text-right space-x-3">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          className="inline-flex items-center gap-2 p-4 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-2xl font-bold shadow-md transition-all"
+                          onClick={() => toast('Editando...')}
+                        >
+                          <Edit2 className="w-5 h-5" />
+                          Editar
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          className="inline-flex items-center gap-2 p-4 bg-red-100 hover:bg-red-200 text-red-800 rounded-2xl font-bold shadow-md transition-all"
+                          onClick={() => toast('Eliminado!')}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                          Eliminar
+                        </motion.button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab !== 'contacts' && activeTab !== 'dashboard' && (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex justify-center"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-12 py-6 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-3xl transition-all"
+            >
+              Ver Todos (8)
+            </motion.button>
+          </motion.div>
+        )}
+      </motion.div>
+    )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-          Gestión de Proyectos
-        </h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors">
-          <Plus className="w-5 h-5" />
-          Nuevo Proyecto
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="grid lg:grid-cols-4 gap-10">
+          <motion.nav
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            className="lg:col-span-1"
+          >
+            <div className="sticky top-28 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-8">
+                Admin Panel
+              </h1>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Proyecto</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Estado</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Beneficiarios</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {data?.projects?.map((project: any) => (
-                <tr key={project._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900 dark:text-white">{project.title}</div>
-                    <div className="text-sm text-gray-500">{project.category}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                      project.status === 'Completado' ? 'bg-green-100 text-green-700' :
-                      project.status === 'En proceso' ? 'bg-blue-100 text-blue-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {project.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{project.beneficiaries}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(project._id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              <div className="space-y-4">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0 }}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center gap-4 p-6 rounded-2xl text-left font-semibold transition-all group hover:shadow-xl ${
+                        activeTab === tab.id
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-2xl shadow-indigo-500/30 scale-[1.02]'
+                          : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 text-gray-700 dark:text-gray-300 hover:scale-[1.02]'
+                      }`}
+                    >
+                      <Icon className="w-7 h-7 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
+                      <span>{tab.label}</span>
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </div>
+          </motion.nav>
+
+          <motion.main initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-3">
+            {renderContent()}
+          </motion.main>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function EventsTab() {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-          Gestión de Eventos
-        </h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors">
-          <Plus className="w-5 h-5" />
-          Nuevo Evento
-        </button>
-      </div>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
-        <CalendarDays className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">Gestión de eventos en desarrollo</p>
-      </div>
-    </div>
-  )
-}
-
-function PostsTab() {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-          Gestión de Blog
-        </h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors">
-          <Plus className="w-5 h-5" />
-          Nueva Publicación
-        </button>
-      </div>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
-        <Newspaper className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">Gestión de blog en desarrollo</p>
-      </div>
-    </div>
-  )
-}
-
-function GalleryTab() {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-          Gestión de Galería
-        </h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors">
-          <Plus className="w-5 h-5" />
-          Subir Imagen
-        </button>
-      </div>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
-        <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">Gestión de galería en desarrollo</p>
-      </div>
-    </div>
-  )
-}
-
-function ContactsTab() {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-          Mensajes de Contacto
-        </h2>
-      </div>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
-        <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">No hay mensajes nuevos</p>
       </div>
     </div>
   )

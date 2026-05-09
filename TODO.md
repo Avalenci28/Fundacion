@@ -1,17 +1,23 @@
-# Admin Login Fix - TODO Progress
+# TODO
 
-## Plan Approved - Steps:
+## Problemas Resueltos ✅
+- [x] HeroSection.tsx: Cambiado de `fetch` hardcodeado a `publicApi.getPublicStats()` con mapeo correcto de campos
+- [x] ProjectsSection.tsx: Cambiado de `fetch` hardcodeado a `publicApi.getProjects()`
+- [x] registro/page.tsx: Campo `motivation` duplicado - dividido en `experience` y `motivation`
+- [x] registro/page.tsx: Función renombrada de `ParticipationPage` a `RegistroPage`
+- [x] registro/page.tsx: Imports no utilizados eliminados (ArrowRight, Filter)
+- [x] layout.tsx: Removido `appleWebApp` (no es Metadata válida en Next.js) - agregado `mobile-web-app-capable` en `other`
+- [x] Tabla users creada correctamente en PostgreSQL (CREATE TABLE IF NOT EXISTS)
+- [x] Import de globals.css corregido en layout.tsx (ruta correcta ./globals.css)
+- [x] Tabla users creada y validada en PostgreSQL
+- [x] Inserción y consulta de prueba ejecutadas correctamente
 
-**Pending:**
-- [ ] Test in browser after server start
+## Pendiente
+- [ ] Verificar que el backend esté corriendo en puerto 5000 para pruebas de integración
 
-**Completed:**
-- [x] 1. Check admin exists → YES (ID=2, role=admin, hash ok)
-- [x] 2. Admin exists
-- [x] 3. Update pw → Already correct, bcrypt verified
+## Notas
+- Providers.tsx usa `QueryClientProvider` correctamente (de react-query)
+- StatsSection.tsx usa `useQuery` correctamente con `publicApi`
+- Blog, galeria, proyectos, eventos, contacto usan `useQuery` y `publicApi` correctamente
+- Backend controllers y routes están correctamente configurados para PostgreSQL/Supabase
 
-**Notes:**
-- ✅ Credenciales correctas: email='admin@fundacion.org' password='Admin2024!'
-- Backend /auth/admin/login returns 'Invalid credentials' if wrong pw/email/role
-- Update frontend placeholder to match
-- Server likely on port 5000 or 3001? Check server.js

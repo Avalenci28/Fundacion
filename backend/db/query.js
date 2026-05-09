@@ -1,4 +1,68 @@
 import pool from '../config/database.js';
+import { getPool } from '../config/database.js';
+
+// Generic helpers
+export const countByFilters = async (table, filters = {}) => {
+  const poolInstance = getPool();
+  let query = `SELECT COUNT(*) FROM ${table}`;
+  const params = [];
+  let paramCount = 1;
+  
+  for (const [key, value] of Object.entries(filters)) {
+    query += ` AND ${key} = $${paramCount++}`;
+    params.push(value);
+  }
+  
+  const result = await poolInstance.query(query, params);
+  return parseInt(result.rows[0].count);
+};
+
+export const paginate = async (table, filters = {}, page = 1, limit = 20, sort = 'created_at DESC') => {
+  const poolInstance = getPool();
+  const offset = (page - 1) * limit;
+  
+  let whereClause = 'WHERE 1=1';
+  const params = [];
+  let paramCount = 1;
+  
+  for (const [key, value] of Object.entries(filters)) {
+    whereClause += ` AND ${key} = $${paramCount++}`;
+    params.push(value);
+  }
+  
+  const countQuery = `SELECT COUNT(*) FROM ${table} ${whereClause}`;
+  const dataQuery = `SELECT * FROM ${table} ${whereClause} ORDER BY ${sort} LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+  params.push(limit, offset);
+  
+  const [countResult, dataResult] = await Promise.all([
+    poolInstance.query(countQuery, params.slice(0, -2)),
+    poolInstance.query(dataQuery, params)
+  ]);
+  
+  return {
+    data: dataResult.rows,
+    total: parseInt(countResult.rows[0].count),
+    page,
+    limit,
+    totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit)
+  };
+};
+
+export const withTransaction = async (fn) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 
 // Users queries
 export const users = {
@@ -316,6 +380,49 @@ export const stats = {
   }
 };
 
+export const participations = {
+  create: (data) => pool.query(
+    `INSERT INTO participations (name, email, phone, skills, availability, motivation, status) 
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [data.name, data.email, data.phone || '', data.skills || '', data.availability || '', data.motivation || '', 'pending']
+  ),
+
+  findAll: (filters = {}) => {
+    let query = `SELECT * FROM participations WHERE 1=1`;
+    const params = [];
+    let paramCount = 1;
+
+    if (filters.status) {
+      query += ` AND status = $${paramCount++}`;
+      params.push(filters.status);
+    }
+
+    query += ` ORDER BY created_at DESC`;
+
+    if (filters.limit) {
+      query += ` LIMIT $${paramCount++}`;
+      params.push(filters.limit);
+    }
+
+    return pool.query(query, params);
+  },
+
+  findById: (id) => pool.query(
+    `SELECT * FROM participations WHERE id = $1`,
+    [id]
+  ),
+
+  updateStatus: (id, status) => pool.query(
+    `UPDATE participations SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+    [status, id]
+  ),
+
+  delete: (id) => pool.query(
+    `DELETE FROM participations WHERE id = $1`,
+    [id]
+  )
+};
+
 export default {
   users,
   projects,
@@ -323,5 +430,6 @@ export default {
   posts,
   gallery,
   contacts,
+  participations,
   stats
 };

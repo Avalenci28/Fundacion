@@ -24,24 +24,17 @@ export default function ProjectsSection() {
   const [activeTab, setActiveTab] = useState<'featured' | 'all'>('featured');
 
   useEffect(() => {
-    // Fetch from PostgreSQL backend
+    // Fetch from PostgreSQL backend using publicApi
     const fetchProjects = async () => {
       try {
-        let response;
-        if (activeTab === 'featured') {
-          // Get featured projects from backend
-          response = await fetch('http://localhost:5000/api/projects');
-          const data = await response.json();
-          if (data.success && data.projects) {
+        const response = await publicApi.getProjects();
+        const data = response.data;
+        if (data.success && data.projects) {
+          if (activeTab === 'featured') {
             // Filter featured projects
             const featured = data.projects.filter((p: Project) => p.is_featured);
             setProjects(featured.slice(0, 3));
-          }
-        } else {
-          // Get all projects
-          response = await fetch('http://localhost:5000/api/projects');
-          const data = await response.json();
-          if (data.success && data.projects) {
+          } else {
             setProjects(data.projects.slice(0, 6));
           }
         }
@@ -97,7 +90,7 @@ export default function ProjectsSection() {
     fetchProjects();
   }, [activeTab]);
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     'Completado': 'from-emerald-500 to-emerald-600',
     'En proceso': 'from-yellow-500 to-yellow-600',
     'Próximamente': 'from-blue-500 to-blue-600'

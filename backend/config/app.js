@@ -1,6 +1,6 @@
-import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
+import helmet from 'helmet';
 import morgan from 'morgan';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
@@ -21,6 +21,12 @@ export default function configApp(app) {
   }));
   app.use(hpp());
 
+  // DEBUG: log every request origin (remove after debugging)
+  app.use((req, res, next) => {
+    console.log('[' + req.method + ']', req.path, '| Origin:', req.headers.origin);
+    next();
+  });
+
   // Rate limiting
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -29,15 +35,35 @@ export default function configApp(app) {
   });
   app.use('/api/', limiter);
 
-  // CORS
-  app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://malambosonrie.org', 'https://www.malambosonrie.org'] 
-      : ['http://localhost:3000', 'http://localhost:3001'],
+  // CORS - hardcoded origins, credentials, full methods
+  const corsOptions = {
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  }));
+    origin: (origin, callback) => {
+      // HARDCODED: si el navegador envía este origin, se permite
+      const allowed = [
+        'http://localhost:3000',
+        'http://localhost:3001'
+      ];
+
+      console.log('[CORS check] origin received:', origin);
+      console.log('[CORS check] allowed list:', allowed);
+      console.log('[CORS check] match:', !origin ? 'ALLOWED (no origin)' : allowed.includes(origin) ? 'ALLOWED' : 'BLOCKED');
+
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS bloqueado: ' + origin));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  };
+
+  // CORS middleware - ANTES de todas las rutas
+  app.use(cors(corsOptions));
+
+  // Preflight handler explícito - ANTES de rutas
+  app.options('*', cors(corsOptions));
 
   // Body parser
   app.use(express.json({ limit: '10mb' }));

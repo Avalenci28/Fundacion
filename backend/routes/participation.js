@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 // Public route - submit participation request
-router.post('/submit', [
+router.post('/', [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Please enter a valid email'),
   body('motivation').trim().notEmpty().withMessage('Please tell us why you want to participate')

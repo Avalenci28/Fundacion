@@ -64,7 +64,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative w-10 h-10">
-              <Heart className="w-10 h-10 text-primary-500 fill-primary-500 group-hover:scale-110 transition-transform" />
+<img src="/logo.svg" alt="Fundación Malambo Sonríe" className="w-10 h-10 group-hover:scale-110 transition-transform drop-shadow-lg" />
             </div>
             <div className="flex flex-col">
               <span className={`font-display font-bold text-xl leading-tight ${

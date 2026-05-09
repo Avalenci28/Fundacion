@@ -4,9 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 export const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
@@ -14,8 +12,19 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Para requests JSON, explicitly set Accept + Content-Type.
+  // Para FormData (multipart/form-data), NO forzar Content-Type
+  // para que axios/browser lo seteen automáticamente con el boundary.
+  if (config.data instanceof FormData) {
+    // Don't set Content-Type for FormData — browser sets it with boundary
+    config.headers['Accept'] = 'application/json'
+  } else if (config.method === 'post' || config.method === 'put' || config.method === 'patch') {
+    config.headers['Content-Type'] = 'application/json'
+    config.headers['Accept'] = 'application/json'
+  }
   return config
 })
+
 
 api.interceptors.response.use(
   (response) => response,

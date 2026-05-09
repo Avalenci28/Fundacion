@@ -17,9 +17,15 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon.ico',
+  },
   title: 'Malambo Sonríe - Conectando corazones, construyendo comunidad',
   description: 'Iniciativa social enfocada en mejorar la calidad de vida de las personas mediante actividades comunitarias, proyectos sociales y participación ciudadana.',
   keywords: ['Malambo', 'organización social', 'voluntariado', 'comunidad', 'proyectos sociales'],
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 }
 
 export default function RootLayout({

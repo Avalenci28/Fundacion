@@ -1,30 +1,19 @@
 import express from 'express';
 import { protect, authorize } from '../middleware/auth.js';
 import {
-  getDashboard,
-  getUsers,
-  updateUser,
-  deleteUser,
-  getAllProjects,
-  createProject,
-  updateProject,
-  deleteProject,
-  getAllEvents,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  getAllPosts,
-  createPost,
-  updatePost,
-  deletePost,
-  getAllGallery,
-  createGalleryItem,
-  updateGalleryItem,
-  deleteGalleryItem,
-  getAllContacts,
-  markContactAsRead,
-  deleteContact
-} from '../controllers/adminController.js';
+  getAllProjects, adminCreateProject, adminUpdateProject, adminDeleteProject
+} from '../controllers/adminProjectController.js';
+import {
+  getAllEvents, adminCreateEvent, adminUpdateEvent, adminDeleteEvent
+} from '../controllers/adminEventController.js';
+import {
+  getAllPosts, adminCreatePost, adminUpdatePost, adminDeletePost
+} from '../controllers/adminPostController.js';
+import {
+  getAllGallery, adminCreateGalleryItem, adminUpdateGalleryItem, adminDeleteGalleryItem
+} from '../controllers/adminGalleryController.js';
+import { getDashboard, getUsers, updateUser, deleteUser, getAllContacts, markContactAsRead, deleteContact } from '../controllers/adminController.js';
+
 
 import {
   getAllParticipations,
@@ -47,27 +36,27 @@ router.delete('/users/:id', deleteUser);
 
 // Projects
 router.get('/projects', getAllProjects);
-router.post('/projects', createProject);
-router.put('/projects/:id', updateProject);
-router.delete('/projects/:id', deleteProject);
+router.post('/projects', adminCreateProject);
+router.put('/projects/:id', adminUpdateProject);
+router.delete('/projects/:id', adminDeleteProject);
 
 // Events
 router.get('/events', getAllEvents);
-router.post('/events', createEvent);
-router.put('/events/:id', updateEvent);
-router.delete('/events/:id', deleteEvent);
+router.post('/events', adminCreateEvent);
+router.put('/events/:id', adminUpdateEvent);
+router.delete('/events/:id', adminDeleteEvent);
 
 // Posts
 router.get('/posts', getAllPosts);
-router.post('/posts', createPost);
-router.put('/posts/:id', updatePost);
-router.delete('/posts/:id', deletePost);
+router.post('/posts', adminCreatePost);
+router.put('/posts/:id', adminUpdatePost);
+router.delete('/posts/:id', adminDeletePost);
 
 // Gallery
 router.get('/gallery', getAllGallery);
-router.post('/gallery', createGalleryItem);
-router.put('/gallery/:id', updateGalleryItem);
-router.delete('/gallery/:id', deleteGalleryItem);
+router.post('/gallery', adminCreateGalleryItem);
+router.put('/gallery/:id', adminUpdateGalleryItem);
+router.delete('/gallery/:id', adminDeleteGalleryItem);
 
 // Contacts
 router.get('/contacts', getAllContacts);

@@ -11,7 +11,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <Heart className="w-8 h-8 text-primary-500 fill-primary-500" />
+<img src="/logo.svg" alt="Fundación Malambo Sonríe" className="w-8 h-8 drop-shadow-lg" />
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg">Malambo</span>
                 <span className="font-display font-bold text-sm text-primary-400 -mt-1">Sonríe!</span>

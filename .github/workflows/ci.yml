@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+    
+    - name: Backend deps
+      run: cd backend && npm ci
+    
+    - name: Backend test DB
+      run: cd backend && npm run test:db  # assume test script
+    
+    - name: Frontend deps
+      run: cd frontend && npm ci
+    
+    - name: Frontend build
+      run: cd frontend && npm run build
+    
+    - name: Playwright tests
+      run: npx playwright test
+    
+    - name: Backend lint
+      run: cd backend && npm run lint
+    
+    - name: Frontend lint
+      run: cd frontend && npm run lint
+

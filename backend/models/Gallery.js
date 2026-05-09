@@ -1,58 +1,22 @@
-import mongoose from 'mongoose';
+/* DISABLED: Mongoose migrated to PostgreSQL (backend/db/query.js#gallery)
 
-const gallerySchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Title is required'],
-    trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters']
-  },
-  description: {
-    type: String,
-    maxlength: [500, 'Description cannot exceed 500 characters'],
-    default: ''
-  },
-  url: {
-    type: String,
-    required: [true, 'URL is required']
-  },
-  thumbnail: {
-    type: String,
-    default: ''
-  },
-  type: {
-    type: String,
-    enum: ['image', 'video'],
-    default: 'image'
-  },
-  category: {
-    type: String,
-    enum: ['evento', 'proyecto', 'comunidad', 'voluntariado', 'otro'],
-    default: 'otro'
-  },
-  project: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    default: null
-  },
-  event: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Event',
-    default: null
-  },
-  isFeatured: {
-    type: Boolean,
-    default: false
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  }
-}, {
-  timestamps: true
-});
+PG Schema:
+CREATE TABLE gallery (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  url TEXT NOT NULL,
+  thumbnail TEXT,
+  type VARCHAR(20) DEFAULT 'image',
+  category VARCHAR(50) DEFAULT 'otro',
+  project_id INTEGER REFERENCES projects(id),
+  event_id INTEGER REFERENCES events(id),
+  is_featured BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-gallerySchema.index({ category: 1, createdAt: -1 });
-
-export default mongoose.model('Gallery', gallerySchema);
+Use: import { gallery } from '../db/query.js';
+*/
 

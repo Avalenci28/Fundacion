@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 
 // Supabase PostgreSQL configuration - Using Session Pooler (IPv4-compatible)
 const pool = new Pool({
-  host: process.env.PGHOST || 'aws-0-us-east-1.pooler.supabase.com',
+  host: process.env.PGHOST || 'aws-1-us-west-2.pooler.supabase.com',
   user: process.env.PGUSER || 'postgres',
   password: process.env.PGPASSWORD || '104461638base',
   database: process.env.PGDATABASE || 'postgres',
@@ -61,6 +61,15 @@ async function runMigrations() {
     await client.query(createAdminSQL);
     console.log('✅ admin user created/verified\n');
     
+    // Migration 4: Add skills columns to participations
+    console.log('📋 Running: add_skills_to_participations.sql');
+    const addSkillsSQL = fs.readFileSync(
+      path.join(__dirname, 'add_skills_to_participations.sql'),
+      'utf8'
+    );
+    await client.query(addSkillsSQL);
+    console.log('✅ skills/availability columns added to participations\n');
+    
     // Verify tables exist
     console.log('🔍 Verifying tables...');
     const result = await client.query(`
@@ -105,3 +114,4 @@ runMigrations().catch(err => {
   console.error('Fatal error:', err);
   process.exit(1);
 });
+

@@ -1,70 +1,21 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+/* DISABLED: Mongoose migrated to PostgreSQL (backend/db/query.js#users)
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true,
-    maxlength: [50, 'Name cannot exceed 50 characters']
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/\S+@\S+\.\S+/, 'Please enter a valid email']
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select: false
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  },
-  avatar: {
-    type: String,
-    default: ''
-  },
-  phone: {
-    type: String,
-    default: ''
-  },
-  bio: {
-    type: String,
-    maxlength: [500, 'Bio cannot exceed 500 characters'],
-    default: ''
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  volunteerInfo: {
-    skills: [String],
-    availability: [String],
-    experience: {
-      type: String,
-      default: ''
-    }
-  }
-}, {
-  timestamps: true
-});
+PG Schema:
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  avatar TEXT DEFAULT '',
+  phone VARCHAR(50) DEFAULT '',
+  bio TEXT DEFAULT '{}',
+  is_active BOOLEAN DEFAULT true,
+  volunteer_info JSONB DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
-
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
-
-export default mongoose.model('User', userSchema);
+Use: import { users } from '../db/query.js'; users.create/update etc.
+*/
 

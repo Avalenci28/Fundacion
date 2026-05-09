@@ -1,31 +1,38 @@
-import User from '../models/User.js';
-import Project from '../models/Project.js';
+import { users } from '../db/query.js';
+import { projects } from '../db/query.js';
+import pool from '../config/database.js';
 
 export const getVolunteers = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, search } = req.query;
-    const query = { isActive: true };
+    
+    let query = `SELECT * FROM users WHERE is_active = true`;
+    const params = [];
+    let paramCount = 1;
     
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
-      ];
+      query += ` AND (name ILIKE $${paramCount++} OR email ILIKE $${paramCount++})`;
+      params.push(`%${search}%`, `%${search}%`);
     }
     
-    const volunteers = await User.find(query)
-      .select('-password')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    query += ` ORDER BY created_at DESC LIMIT $${paramCount++} OFFSET $${paramCount++}`;
+    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
     
-    const count = await User.countDocuments(query);
+    const result = await pool.query(query, params);
+    
+    const countQuery = `SELECT COUNT(*) FROM users WHERE is_active = true`;
+    if (search) {
+      countQuery += ` AND (name ILIKE $1 OR email ILIKE $1)`;
+    }
+    const countParams = search ? [`%${search}%`] : [];
+    const countResult = await pool.query(countQuery, countParams);
+    const count = parseInt(countResult.rows[0].count);
     
     res.json({
       success: true,
-      volunteers,
+      volunteers: result.rows,
       totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total: count
     });
   } catch (error) {
@@ -35,15 +42,19 @@ export const getVolunteers = async (req, res, next) => {
 
 export const getVolunteerProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-    const projects = await Project.find({ volunteers: req.user.id, isActive: true })
-      .select('title status image');
+    const result = await users.findById(req.user.id);
+    const user = result.rows[0];
+    
+    const projResult = await pool.query(
+      `SELECT title, status, image FROM projects WHERE volunteers @> $1 AND is_active = true`,
+      [JSON.stringify([{id: req.user.id}])]
+    );
     
     res.json({
       success: true,
       profile: {
-        ...user.toObject(),
-        projects
+        ...user,
+        projects: projResult.rows
       }
     });
   } catch (error) {
@@ -55,17 +66,14 @@ export const updateVolunteerInfo = async (req, res, next) => {
   try {
     const { skills, availability, experience } = req.body;
     
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        volunteerInfo: {
-          skills: skills || [],
-          availability: availability || [],
-          experience: experience || ''
-        }
-      },
-      { new: true, runValidators: true }
-    ).select('-password');
+    const volunteerInfo = {
+      skills: skills || [],
+      availability: availability || [],
+      experience: experience || ''
+    };
+    
+    const result = await users.update(req.user.id, { volunteer_info: JSON.stringify(volunteerInfo) });
+    const user = result.rows[0];
     
     res.json({ success: true, user });
   } catch (error) {

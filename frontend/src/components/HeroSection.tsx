@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { publicApi } from '@/lib/api';
 
 interface Stats {
   projects: string;
@@ -16,18 +17,19 @@ export default function HeroSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch from PostgreSQL backend
+    // Fetch from PostgreSQL backend using publicApi
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/stats/public');
-        const data = await response.json();
+        const response = await publicApi.getPublicStats();
+        const data = response.data;
         if (data.success && data.stats) {
           setStats({
-            projects: data.stats.projects || '0',
-            events: data.stats.events || '0',
-            volunteers: data.stats.volunteers || '0',
-            users: data.stats.users || '0',
-            totalProjects: data.stats.totalProjects || '0'
+            // Map backend field names to frontend expected names
+            projects: String(data.stats.projectsCompleted || 0),
+            events: String(data.stats.eventsUpcoming || 0),
+            volunteers: String(data.stats.volunteers || 0),
+            users: String(data.stats.volunteers || 0),
+            totalProjects: String(data.stats.peopleHelped || 0)
           });
         }
       } catch (error) {
@@ -44,7 +46,7 @@ export default function HeroSection() {
         setLoading(false);
       }
     };
-    
+
     fetchStats();
   }, []);
 
@@ -85,6 +87,14 @@ export default function HeroSection() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="mb-12"
           >
+<motion.img 
+              src="/logo.svg" 
+              alt="Fundación Malambo Sonríe" 
+              className="w-24 h-24 mx-auto mb-6 drop-shadow-2xl" 
+              initial={{ scale: 0, rotate: 180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            />
             <div className="text-6xl md:text-8xl font-black bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent mb-6">
               Malambo Sonríe
             </div>

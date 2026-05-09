@@ -1,73 +1,25 @@
-import mongoose from 'mongoose';
+/* DISABLED: Mongoose migrated to PostgreSQL (backend/db/query.js#projects)
 
-const projectSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Title is required'],
-    trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters']
-  },
-  description: {
-    type: String,
-    required: [true, 'Description is required'],
-    maxlength: [2000, 'Description cannot exceed 2000 characters']
-  },
-  shortDescription: {
-    type: String,
-    maxlength: [200, 'Short description cannot exceed 200 characters'],
-    default: ''
-  },
-  image: {
-    type: String,
-    default: ''
-  },
-  gallery: [{
-    type: String
-  }],
-  status: {
-    type: String,
-    enum: ['Completado', 'En proceso', 'Próximamente'],
-    default: 'Próximamente'
-  },
-  category: {
-    type: String,
-    enum: ['social', 'ambiental', 'educativo', 'cultural', 'deportivo'],
-    default: 'social'
-  },
-  startDate: {
-    type: Date,
-    default: null
-  },
-  endDate: {
-    type: Date,
-    default: null
-  },
-  location: {
-    type: String,
-    default: ''
-  },
-  beneficiaries: {
-    type: Number,
-    default: 0
-  },
-  volunteers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  isFeatured: {
-    type: Boolean,
-    default: false
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  }
-}, {
-  timestamps: true
-});
+PG Schema:
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  short_description TEXT,
+  image TEXT[],
+  status VARCHAR(50) DEFAULT 'Próximamente' CHECK (status IN ('Completado', 'En proceso', 'Próximamente')),
+  category VARCHAR(50) DEFAULT 'social',
+  start_date TIMESTAMP,
+  end_date TIMESTAMP,
+  location VARCHAR(255),
+  beneficiaries INTEGER DEFAULT 0,
+  volunteers INTEGER[] , -- user_ids
+  is_featured BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-projectSchema.index({ status: 1, createdAt: -1 });
-projectSchema.index({ category: 1 });
-
-export default mongoose.model('Project', projectSchema);
+Use: import { projects } from '../db/query.js';
+*/
 

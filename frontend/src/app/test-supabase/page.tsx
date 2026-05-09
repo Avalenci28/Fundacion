@@ -11,7 +11,7 @@ export default async function Page() {
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Supabase Test</h1>
       <ul>
-        {todos?.map((todo) => (
+        {todos?.map((todo: { id: number; name: string }) => (
           <li key={todo.id}>{todo.name}</li>
         ))}
       </ul>

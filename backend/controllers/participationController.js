@@ -9,7 +9,7 @@ export const submitParticipation = async (req, res, next) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { name, email, phone, skills, availability, motivation } = req.body;
+const { name, email, phone, skills = '', availability = '', motivation } = req.body;
 
     // Check if email already submitted with pending status
     const existingResult = await pool.query(

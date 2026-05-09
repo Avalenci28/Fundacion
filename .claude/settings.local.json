@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next lint)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx eslint src --ext .ts,.tsx)",
+      "Bash(mkdir -p src/utils/supabase)",
+      "Bash(cp utils/supabase/*.ts src/utils/supabase/)",
+      "Bash(node --check server.js)",
+      "Bash(node -e \":*)",
+      "Bash(node scripts/testUsersTable.mjs)"
+    ]
+  }
+}

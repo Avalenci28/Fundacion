@@ -30,28 +30,25 @@ if (envPath) {
   dotenv.config();
 }
 
-export async function validateAndConnectDB() {
+export default async function validateAndConnectDB() {
   console.log('🔍 Validando y probando PostgreSQL...\n');
   console.log('PGHOST:', process.env.PGHOST || 'localhost');
   console.log('PGDATABASE:', process.env.PGDATABASE || 'postgres');
   console.log('');
 
   try {
-    // Initialize pool (this will also create database if needed)
     const pool = await initPool();
-    
-    // Test connection
     const result = await pool.query('SELECT NOW()');
-    
+
     console.log('✅ PostgreSQL Connected:', result.rows[0].now);
     console.log('📊 Database:', process.env.PGDATABASE || 'malambo_sonrie');
-    
+
     return true;
   } catch (error) {
     console.log('❌ ERROR DE CONEXIÓN');
     console.log('Código:', error.code || 'N/A');
     console.log('Mensaje:', error.message);
-    
+
     if (error.code === 'ENOTFOUND') {
       console.log('🔧 Verifica que PostgreSQL esté ejecutándose');
     } else if (error.code === 'ECONNREFUSED') {
@@ -61,9 +58,11 @@ export async function validateAndConnectDB() {
     } else if (error.code === '3D000') {
       console.log('🔧 La base de datos no existe');
     }
+
     process.exit(1);
   }
 }
 
-// Export for CommonJS compatibility
-module.exports = { validateAndConnectDB };
+// Named export (ESM) for any existing imports
+export { validateAndConnectDB };
+

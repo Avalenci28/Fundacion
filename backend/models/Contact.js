@@ -1,45 +1,19 @@
-import mongoose from 'mongoose';
+/* DISABLED: Mongoose migrated to PostgreSQL (backend/db/query.js#contacts)
 
-const contactSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true,
-    maxlength: [50, 'Name cannot exceed 50 characters']
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    trim: true,
-    match: [/\S+@\S+\.\S+/, 'Please enter a valid email']
-  },
-  phone: {
-    type: String,
-    default: ''
-  },
-  subject: {
-    type: String,
-    required: [true, 'Subject is required'],
-    maxlength: [100, 'Subject cannot exceed 100 characters']
-  },
-  message: {
-    type: String,
-    required: [true, 'Message is required'],
-    maxlength: [2000, 'Message cannot exceed 2000 characters']
-  },
-  isRead: {
-    type: Boolean,
-    default: false
-  },
-  isReplied: {
-    type: Boolean,
-    default: false
-  }
-}, {
-  timestamps: true
-});
+PG Schema:
+CREATE TABLE contacts (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  subject VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT false,
+  is_replied BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-contactSchema.index({ isRead: 1, createdAt: -1 });
-
-export default mongoose.model('Contact', contactSchema);
+Use: import { contacts } from '../db/query.js'; contacts.markAsRead etc.
+*/
 
