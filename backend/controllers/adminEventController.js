@@ -33,12 +33,13 @@ export const getAllEvents = async (req, res, next) => {
 };
 
 export const adminCreateEvent = async (req, res, next) => {
-  try {
-    upload.single('image')(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: err.message });
-      }
+  // Multer upload middleware - handles multipart/form-data
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
 
+    try {
       const createEventSchema = Joi.object({
         title: Joi.string().min(3).max(200).required().label('Título'),
         description: Joi.string().min(10).max(2000).required().label('Descripción'),
@@ -47,7 +48,10 @@ export const adminCreateEvent = async (req, res, next) => {
         capacity: Joi.number().integer().min(1).max(10000).required().label('Capacidad'),
         location: Joi.string().max(200).required().label('Ubicación'),
         end_date: Joi.date().iso().label('Fecha fin'),
-        is_featured: Joi.boolean().default(false).label('Destacado')
+        is_featured: Joi.alternatives().try(
+          Joi.boolean(),
+          Joi.string().valid('true', 'false')
+        ).default(false).label('Destacado')
       });
 
       const { error: validationError, value: validatedData } = createEventSchema.validate(req.body, { abortEarly: false });
@@ -61,15 +65,15 @@ export const adminCreateEvent = async (req, res, next) => {
       if (supabase && req.file) {
         const fileExt = req.file.originalname.split('.').pop();
         const fileName = `events/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        
+
         const { data, error } = await supabase.storage
           .from('images')
           .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
-          
+
         if (error) {
           return res.status(500).json({ success: false, message: 'Image upload failed' });
         }
-        
+
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
         image_url = publicUrl;
       }
@@ -92,69 +96,78 @@ export const adminCreateEvent = async (req, res, next) => {
       const event = result.rows[0];
 
       res.status(201).json({ success: true, event });
-    });
-  } catch (error) {
-    next(error);
-  }
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
 };
 
 export const adminUpdateEvent = async (req, res, next) => {
+  // First find the event
   try {
     const result = await events.findById(req.params.id);
     const event = result.rows[0];
-    
+
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
 
+    // Multer upload middleware - handles multipart/form-data
     upload.single('image')(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ success: false, message: err.message });
       }
 
-      const updateEventSchema = Joi.object({
-        title: Joi.string().min(3).max(200).required().label('Título'),
-        description: Joi.string().min(10).max(2000).required().label('Descripción'),
-        date: Joi.date().iso().required().label('Fecha'),
-        type: Joi.string().max(50).required().label('Tipo'),
-        capacity: Joi.number().integer().min(1).max(10000).required().label('Capacidad'),
-        location: Joi.string().max(200).required().label('Ubicación'),
-        end_date: Joi.date().iso().label('Fecha fin'),
-        is_featured: Joi.boolean().label('Destacado')
-      });
+      try {
+        const updateEventSchema = Joi.object({
+          title: Joi.string().min(3).max(200).required().label('Título'),
+          description: Joi.string().min(10).max(2000).required().label('Descripción'),
+          date: Joi.date().iso().required().label('Fecha'),
+          type: Joi.string().max(50).required().label('Tipo'),
+          capacity: Joi.number().integer().min(1).max(10000).required().label('Capacidad'),
+          location: Joi.string().max(200).required().label('Ubicación'),
+          end_date: Joi.date().iso().label('Fecha fin'),
+          is_featured: Joi.alternatives().try(
+            Joi.boolean(),
+            Joi.string().valid('true', 'false')
+          ).label('Destacado')
+        });
 
-      const { error: validationError, value: validatedData } = updateEventSchema.validate(req.body, { abortEarly: false });
-      if (validationError) {
-        return res.status(400).json({ success: false, message: validationError.details.map(d => d.message).join(', ') });
-      }
-
-      let image_url = event.image;
-      if (supabase && req.file) {
-        const fileExt = req.file.originalname.split('.').pop();
-        const fileName = `events/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-          .from('images')
-          .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
-          
-        if (error) {
-          return res.status(500).json({ success: false, message: 'Image upload failed' });
+        const { error: validationError, value: validatedData } = updateEventSchema.validate(req.body, { abortEarly: false });
+        if (validationError) {
+          return res.status(400).json({ success: false, message: validationError.details.map(d => d.message).join(', ') });
         }
-        
-        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
-        image_url = publicUrl;
+
+        let image_url = event.image;
+        if (supabase && req.file) {
+          const fileExt = req.file.originalname.split('.').pop();
+          const fileName = `events/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+
+          const { data, error } = await supabase.storage
+            .from('images')
+            .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+
+          if (error) {
+            return res.status(500).json({ success: false, message: 'Image upload failed' });
+          }
+
+          const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+          image_url = publicUrl;
+        }
+
+        const eventData = {
+          ...validatedData,
+          image: image_url,
+          capacity: Number(validatedData.capacity)
+        };
+
+        const updateResult = await events.update(req.params.id, eventData);
+        const updatedEvent = updateResult.rows[0];
+
+        res.json({ success: true, event: updatedEvent });
+      } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
       }
-
-      const eventData = {
-        ...validatedData,
-        image: image_url,
-        capacity: Number(validatedData.capacity)
-      };
-
-      const updateResult = await events.update(req.params.id, eventData);
-      const updatedEvent = updateResult.rows[0];
-
-      res.json({ success: true, event: updatedEvent });
     });
   } catch (error) {
     next(error);

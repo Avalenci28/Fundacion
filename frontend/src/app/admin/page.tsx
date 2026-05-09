@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { useQuery } from 'react-query'
 
 import {
   CalendarDays,
@@ -20,7 +21,11 @@ import {
 import toast from 'react-hot-toast'
 
 import AdminProjectsCRUD from '@/components/admin/AdminProjectsCRUD'
+import AdminEventsCRUD from '@/components/admin/AdminEventsCRUD'
+import AdminGalleryCRUD from '@/components/admin/AdminGalleryCRUD'
+import AdminContactsCRUD from '@/components/admin/AdminContactsCRUD'
 import { useAuthStore } from '@/store/authStore'
+import { adminApi } from '@/lib/api'
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -39,6 +44,34 @@ export default function AdminPage() {
 
   const router = useRouter()
   const { user, isAuthenticated } = useAuthStore()
+
+  // Queries for counting items - always enabled to show correct count
+  const { data: projectsData, refetch: refetchProjects } = useQuery(['adminProjects'], () => adminApi.getAllProjects().then(res => res.data))
+  const { data: eventsData, refetch: refetchEvents } = useQuery(['adminEvents'], () => adminApi.getAllEvents().then(res => res.data))
+  const { data: postsData, refetch: refetchPosts } = useQuery(['adminPosts'], () => adminApi.getAllPosts().then(res => res.data))
+  const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], () => adminApi.getAllGallery().then(res => res.data))
+  const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], () => adminApi.getAllContacts().then(res => res.data))
+
+  const getCount = (tab?: string) => {
+    const t = tab || activeTab
+    switch (t) {
+      case 'projects': return projectsData?.projects?.length ?? 0
+      case 'events': return eventsData?.events?.length ?? 0
+      case 'posts': return postsData?.posts?.length ?? 0
+      case 'gallery': return galleryData?.gallery?.length ?? 0
+      case 'contacts': return contactsData?.contacts?.filter((c: any) => !c.is_read).length ?? 0
+      default: return 0
+    }
+  }
+
+  // Refetch when tab changes to ensure fresh count
+  useEffect(() => {
+    if (activeTab === 'projects') refetchProjects()
+    else if (activeTab === 'events') refetchEvents()
+    else if (activeTab === 'posts') refetchPosts()
+    else if (activeTab === 'gallery') refetchGallery()
+    else if (activeTab === 'contacts') refetchContacts()
+  }, [activeTab])
 
   useEffect(() => {
     setMounted(true)
@@ -59,6 +92,126 @@ export default function AdminPage() {
   }
 
   const renderContent = () => {
+    // Dashboard stats
+    if (activeTab === 'dashboard') {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-8"
+        >
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            Dashboard
+          </h2>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <FolderOpen className="w-8 h-8 text-blue-600" />
+                </div>
+                <span className="text-sm text-gray-500">Proyectos</span>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('projects')}</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <CalendarDays className="w-8 h-8 text-purple-600" />
+                </div>
+                <span className="text-sm text-gray-500">Eventos</span>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('events')}</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-pink-100 rounded-xl">
+                  <Newspaper className="w-8 h-8 text-pink-600" />
+                </div>
+                <span className="text-sm text-gray-500">Posts</span>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('posts')}</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-100 rounded-xl">
+                  <ImageIcon className="w-8 h-8 text-emerald-600" />
+                </div>
+                <span className="text-sm text-gray-500">Galería</span>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('gallery')}</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <MessageSquare className="w-8 h-8 text-orange-600" />
+                </div>
+                <span className="text-sm text-gray-500">Mensajes</span>
+              </div>
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('contacts')}</div>
+              <div className="text-sm text-gray-500 mt-1">sin leer</div>
+            </motion.div>
+          </div>
+
+          {/* Recent Projects Preview */}
+          <motion.div
+            initial={{ scale: 0.98, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-6"
+          >
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Proyectos Recientes</h3>
+            {projectsData?.projects?.length > 0 ? (
+              <div className="space-y-3">
+                {projectsData.projects.slice(0, 5).map((p: any) => (
+                  <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">{p.title}</div>
+                      <div className="text-sm text-gray-500">{p.status} • {p.category}</div>
+                    </div>
+                    <span className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded-full">{p.beneficiaries} beneficiarios</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No hay proyectos todavía</p>
+            )}
+          </motion.div>
+        </motion.div>
+      )
+    }
+
     return (
       <motion.div
         key={activeTab}
@@ -88,6 +241,12 @@ export default function AdminPage() {
 
         {activeTab === 'projects' ? (
           <AdminProjectsCRUD />
+        ) : activeTab === 'events' ? (
+          <AdminEventsCRUD />
+        ) : activeTab === 'gallery' ? (
+          <AdminGalleryCRUD />
+        ) : activeTab === 'contacts' ? (
+          <AdminContactsCRUD />
         ) : (
           <motion.div
             initial={{ scale: 0.98, opacity: 0 }}
@@ -173,7 +332,7 @@ export default function AdminPage() {
               whileHover={{ scale: 1.05 }}
               className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-12 py-6 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-3xl transition-all"
             >
-              Ver Todos (8)
+              Ver Todos ({getCount()})
             </motion.button>
           </motion.div>
         )}

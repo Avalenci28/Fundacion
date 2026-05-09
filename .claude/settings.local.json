@@ -8,7 +8,31 @@
       "Bash(cp utils/supabase/*.ts src/utils/supabase/)",
       "Bash(node --check server.js)",
       "Bash(node -e \":*)",
-      "Bash(node scripts/testUsersTable.mjs)"
+      "Bash(node scripts/testUsersTable.mjs)",
+      "Bash(ls \"c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/backend/TODO\"*)",
+      "Bash(npx supabase --version)",
+      "Bash(supabase status)",
+      "Bash(claude mcp add --scope project --transport http supabase \"https://mcp.supabase.com/mcp?project_ref=fulgeedluudhpmglteqp\")",
+      "Bash(npm list -g @anthropic-ai/claude-code)",
+      "Bash(node --check \"c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/backend/controllers/adminEventController.js\")",
+      "Bash(node --check \"c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/backend/controllers/adminPostController.js\")",
+      "Bash(node --check \"c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/backend/controllers/adminGalleryController.js\")",
+      "Bash(node checkProjectsColumns.mjs)",
+      "Bash(node checkEventsColumns.mjs)",
+      "Bash(node checkPostsGalleryColumns.mjs)",
+      "Bash(node --check db/query.js)",
+      "Bash(node --check controllers/adminProjectController.js)",
+      "Bash(node --check controllers/adminEventController.js)",
+      "Bash(node --check controllers/adminPostController.js)",
+      "Bash(node --check controllers/adminGalleryController.js)",
+      "Bash(node testDelete.mjs)",
+      "Bash(node checkRLS.mjs)",
+      "Bash(node testDelete2.mjs)",
+      "Bash(node testDeleteFlow.mjs)",
+      "Bash(node testIdType.mjs)",
+      "Bash(npx tsc --noEmit src/app/admin/page.tsx)",
+      "Bash(node --check src/app/admin/page.tsx)",
+      "Bash(node scripts/addContactColumns.mjs)"
     ]
   }
 }

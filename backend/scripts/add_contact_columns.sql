@@ -1,0 +1,4 @@
+-- Add missing columns to contacts table
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS subject VARCHAR(255);
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_replied BOOLEAN DEFAULT FALSE;

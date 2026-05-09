@@ -69,7 +69,16 @@ async function runMigrations() {
     );
     await client.query(addSkillsSQL);
     console.log('✅ skills/availability columns added to participations\n');
-    
+
+    // Migration 5: Enable RLS and create security policies
+    console.log('📋 Running: 01_enable_rls_final.sql');
+    const enableRLSSQL = fs.readFileSync(
+      path.join(__dirname, '01_enable_rls_final.sql'),
+      'utf8'
+    );
+    await client.query(enableRLSSQL);
+    console.log('✅ RLS enabled and security policies created\n');
+
     // Verify tables exist
     console.log('🔍 Verifying tables...');
     const result = await client.query(`

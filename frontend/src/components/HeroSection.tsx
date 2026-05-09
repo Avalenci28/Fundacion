@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from 'react-query';
 import { publicApi } from '@/lib/api';
 
 interface Stats {
@@ -13,42 +14,42 @@ interface Stats {
 }
 
 export default function HeroSection() {
+  const queryClient = useQueryClient();
+
+  const { data: statsData, isLoading } = useQuery('publicStats', () =>
+    publicApi.getPublicStats().then(res => res.data)
+  );
+
   const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch from PostgreSQL backend using publicApi
-    const fetchStats = async () => {
-      try {
-        const response = await publicApi.getPublicStats();
-        const data = response.data;
-        if (data.success && data.stats) {
-          setStats({
-            // Map backend field names to frontend expected names
-            projects: String(data.stats.projectsCompleted || 0),
-            events: String(data.stats.eventsUpcoming || 0),
-            volunteers: String(data.stats.volunteers || 0),
-            users: String(data.stats.volunteers || 0),
-            totalProjects: String(data.stats.peopleHelped || 0)
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        // Fallback stats
-        setStats({
-          projects: '25',
-          events: '8',
-          volunteers: '150',
-          users: '4',
-          totalProjects: '50000'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (statsData?.success && statsData?.stats) {
+      setStats({
+        projects: String(statsData.stats.projectsCompleted || 0),
+        events: String(statsData.stats.eventsUpcoming || 0),
+        volunteers: String(statsData.stats.volunteers || 0),
+        users: String(statsData.stats.volunteers || 0),
+        totalProjects: String(statsData.stats.peopleHelped || 0)
+      });
+    } else if (!isLoading) {
+      setStats({
+        projects: '0',
+        events: '0',
+        volunteers: '0',
+        users: '0',
+        totalProjects: '0'
+      });
+    }
+  }, [statsData, isLoading]);
 
-    fetchStats();
-  }, []);
+  // Refetch stats when window gains focus (to catch changes from admin)
+  useEffect(() => {
+    const handleFocus = () => {
+      queryClient.invalidateQueries('publicStats');
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [queryClient]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-500 via-purple-500 to-pink-600">
@@ -104,7 +105,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* Stats Cards */}
-          {!loading && stats && (
+          {!isLoading && stats && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

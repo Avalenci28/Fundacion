@@ -63,14 +63,14 @@ async function checkEnvFiles() {
       console.log('✅ Solo un .env encontrado - Configuración correcta\n');
     }
 
-    // 5. Verificar MONGODB_URI cargada
+    // 5. Verificar variables PostgreSQL/Supabase cargadas
     console.log('🔍 VARIABLES CARGADAS:');
-    console.log('MONGODB_URI:', process.env.MONGODB_URI || '🚫 NO DEFINIDO');
+    console.log('PGHOST:', process.env.PGHOST || '🚫 NO DEFINIDO');
     
-    if (process.env.MONGODB_URI) {
-      console.log('✅ .env cargado correctamente');
+    if (process.env.PGHOST) {
+      console.log('✅ .env PostgreSQL cargado correctamente');
     } else {
-      console.log('❌ MONGODB_URI no encontrada en backend/.env');
+      console.log('❌ PGHOST no encontrado en backend/.env');
     }
 
   } catch (error) {

@@ -7,24 +7,6 @@ export default (err, req, res, next) => {
 
   console.error('ERROR', err);
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = new ErrorResponse(message, 404);
-  }
-
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
-    error = new ErrorResponse(message, 400);
-  }
-
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = new ErrorResponse(message, 400);
-  }
-
   // JWT Error
   if (err.name === 'JsonWebTokenError') {
     const message = 'Invalid token';
@@ -37,11 +19,19 @@ export default (err, req, res, next) => {
     error = new ErrorResponse(message, 401);
   }
 
+  // PostgreSQL errors
+  if (err.code === '23505') {
+    const message = 'Duplicate field value entered';
+    error = new ErrorResponse(message, 400);
+  }
+
+  if (err.code === '23503') {
+    const message = 'Foreign key violation';
+    error = new ErrorResponse(message, 400);
+  }
+
   res.status(error.statusCode || 500).json({
     success: false,
     message: error.message || 'Server Error'
   });
 };
-
-
-

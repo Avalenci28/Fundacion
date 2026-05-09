@@ -1,48 +1,50 @@
-# Supabase RLS Security Policies
+# RLS Security — Fundación Malambo Sonríe
+## Estado: ✅ IMPLEMENTADO (2026-05-09)
 
-## Implemented Policies
-
-### 1. Row Level Security Enabled
-RLS activated on:
+### Tablas con RLS habilitado
 - `public.users`
 - `public.projects`
 - `public.events`
 - `public.posts`
-- `public.gallery`
 - `public.contacts`
 - `public.participations`
 - `public.volunteers`
+- `public.gallery`
 
-### 2. Public Read Access
-```
-projects, events, posts, gallery: SELECT USING (true)
-```
+### Políticas creadas
 
-### 3. Authenticated Access
-```
-participations, contacts, volunteers: ALL USING (auth.role() = 'authenticated')
-```
-
-### 4. Users Table
-- **Self-access**: `ALL USING (auth.uid() = auth_id)`
-- **Admin full**: `ALL USING (EXISTS admin user with auth.uid())`
-- Sensitive columns (password, email) protected via column policies or views.
-
-## Prerequisites
-- Add `auth_id UUID REFERENCES auth.users(id)` to `users` if missing.
-- Ensure backend/frontend auth integrates with Supabase Auth.
-
-## Testing
-Run in Supabase SQL Editor:
+#### Tablas públicas (lectura sin autenticación)
 ```sql
--- Test public read
-SELECT * FROM public.projects LIMIT 1;
-
--- Test authenticated (as anon fails)
-SET ROLE authenticated;
-SELECT * FROM public.contacts LIMIT 1;
+projects  → SELECT USING (true)
+events    → SELECT USING (true)
+posts     → SELECT USING (true)
+gallery   → SELECT USING (true)
 ```
 
-## Migration Script
-`backend/scripts/00_enable_rls.sql`
+#### Tablas de escritura pública (cualquiera puede insertar, admins leen)
+```sql
+contacts       → INSERT (true), SELECT/UPDATE/DELETE (authenticated)
+participations → INSERT (true), SELECT/UPDATE/DELETE (authenticated)
+volunteers     → INSERT (true), SELECT/UPDATE/DELETE (authenticated)
+```
 
+#### Users (solo admins)
+```sql
+users → SELECT/ALL USING (EXISTS role = 'admin')
+```
+
+### Verificación
+```sql
+-- RLS habilitado
+SELECT tablename, rowsecurity FROM pg_tables
+WHERE schemaname = 'public';
+
+-- Políticas creadas
+SELECT schemaname, tablename, policyname, cmd
+FROM pg_policies WHERE schemaname = 'public';
+```
+
+### Importante
+- La tabla `users` usa `id SERIAL` (no tiene `auth_id`), las políticas verifican `role = 'admin'` directamente.
+- El backend usa **Service Role Key** para operaciones de admin — nunca la clave anon.
+- El Security Advisor de Supabase puede tardar unos minutos en actualizar después de aplicar los cambios.

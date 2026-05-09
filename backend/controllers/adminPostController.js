@@ -33,20 +33,27 @@ export const getAllPosts = async (req, res, next) => {
 };
 
 export const adminCreatePost = async (req, res, next) => {
-  try {
-    upload.single('image')(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: err.message });
-      }
+  // Multer upload middleware - handles multipart/form-data
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
 
+    try {
       const createPostSchema = Joi.object({
         title: Joi.string().min(3).max(255).required().label('Título'),
         content: Joi.string().min(10).required().label('Contenido'),
         excerpt: Joi.string().max(200).label('Extracto'),
         category: Joi.string().max(50).default('blog').label('Categoría'),
         tags: Joi.string().label('Tags (comma separated)'),
-        is_published: Joi.boolean().default(true).label('Publicado'),
-        is_featured: Joi.boolean().default(false).label('Destacado')
+        is_published: Joi.alternatives().try(
+          Joi.boolean(),
+          Joi.string().valid('true', 'false')
+        ).default(true).label('Publicado'),
+        is_featured: Joi.alternatives().try(
+          Joi.boolean(),
+          Joi.string().valid('true', 'false')
+        ).default(false).label('Destacado')
       });
 
       const { error: validationError, value: validatedData } = createPostSchema.validate(req.body, { abortEarly: false });
@@ -58,15 +65,15 @@ export const adminCreatePost = async (req, res, next) => {
       if (supabase && req.file) {
         const fileExt = req.file.originalname.split('.').pop();
         const fileName = `posts/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        
+
         const { data, error } = await supabase.storage
           .from('images')
           .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
-          
+
         if (error) {
           return res.status(500).json({ success: false, message: 'Image upload failed' });
         }
-        
+
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
         image_url = publicUrl;
       }
@@ -88,69 +95,81 @@ export const adminCreatePost = async (req, res, next) => {
       const post = result.rows[0];
 
       res.status(201).json({ success: true, post });
-    });
-  } catch (error) {
-    next(error);
-  }
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
 };
 
 export const adminUpdatePost = async (req, res, next) => {
+  // First find the post
   try {
     const result = await posts.findById(req.params.id);
     const post = result.rows[0];
-    
+
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
+    // Multer upload middleware - handles multipart/form-data
     upload.single('image')(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ success: false, message: err.message });
       }
 
-      const updatePostSchema = Joi.object({
-        title: Joi.string().min(3).max(255).required().label('Título'),
-        content: Joi.string().min(10).required().label('Contenido'),
-        excerpt: Joi.string().max(200).label('Extracto'),
-        category: Joi.string().max(50).label('Categoría'),
-        tags: Joi.string().label('Tags'),
-        is_published: Joi.boolean().label('Publicado'),
-        is_featured: Joi.boolean().label('Destacado')
-      });
+      try {
+        const updatePostSchema = Joi.object({
+          title: Joi.string().min(3).max(255).required().label('Título'),
+          content: Joi.string().min(10).required().label('Contenido'),
+          excerpt: Joi.string().max(200).label('Extracto'),
+          category: Joi.string().max(50).label('Categoría'),
+          tags: Joi.string().label('Tags'),
+          is_published: Joi.alternatives().try(
+            Joi.boolean(),
+            Joi.string().valid('true', 'false')
+          ).label('Publicado'),
+          is_featured: Joi.alternatives().try(
+            Joi.boolean(),
+            Joi.string().valid('true', 'false')
+          ).label('Destacado')
+        });
 
-      const { error: validationError, value: validatedData } = updatePostSchema.validate(req.body, { abortEarly: false });
-      if (validationError) {
-        return res.status(400).json({ success: false, message: validationError.details.map(d => d.message).join(', ') });
-      }
-
-      let image_url = post.image;
-      if (supabase && req.file) {
-        const fileExt = req.file.originalname.split('.').pop();
-        const fileName = `posts/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-          .from('images')
-          .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
-          
-        if (error) {
-          return res.status(500).json({ success: false, message: 'Image upload failed' });
+        const { error: validationError, value: validatedData } = updatePostSchema.validate(req.body, { abortEarly: false });
+        if (validationError) {
+          return res.status(400).json({ success: false, message: validationError.details.map(d => d.message).join(', ') });
         }
-        
-        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
-        image_url = publicUrl;
+
+        let image_url = post.image;
+        if (supabase && req.file) {
+          const fileExt = req.file.originalname.split('.').pop();
+          const fileName = `posts/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+
+          const { data, error } = await supabase.storage
+            .from('images')
+            .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+
+          if (error) {
+            return res.status(500).json({ success: false, message: 'Image upload failed' });
+          }
+
+          const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+          image_url = publicUrl;
+        }
+
+        const postData = {
+          ...validatedData,
+          image: image_url,
+          tags: validatedData.tags ? validatedData.tags.split(',').map(t => t.trim()) : post.tags,
+          slug: validatedData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+        };
+
+        const updateResult = await posts.update(req.params.id, postData);
+        const updatedPost = updateResult.rows[0];
+
+        res.json({ success: true, post: updatedPost });
+      } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
       }
-
-      const postData = {
-        ...validatedData,
-        image: image_url,
-        tags: validatedData.tags ? validatedData.tags.split(',').map(t => t.trim()) : post.tags,
-        slug: validatedData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
-      };
-
-      const updateResult = await posts.update(req.params.id, postData);
-      const updatedPost = updateResult.rows[0];
-
-      res.json({ success: true, post: updatedPost });
     });
   } catch (error) {
     next(error);

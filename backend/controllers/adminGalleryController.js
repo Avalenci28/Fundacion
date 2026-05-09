@@ -40,19 +40,23 @@ export const getAllGallery = async (req, res, next) => {
 };
 
 export const adminCreateGalleryItem = async (req, res, next) => {
-  try {
-    upload.single('image')(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: err.message });
-      }
+  // Multer upload middleware - handles multipart/form-data
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
 
+    try {
       const createGallerySchema = Joi.object({
         title: Joi.string().min(3).max(255).required().label('Título'),
         description: Joi.string().max(1000).label('Descripción'),
         category: Joi.string().max(50).default('otro').label('Categoría'),
         project_id: Joi.number().label('Project ID'),
         event_id: Joi.number().label('Event ID'),
-        is_featured: Joi.boolean().default(false).label('Destacado')
+        is_featured: Joi.alternatives().try(
+          Joi.boolean(),
+          Joi.string().valid('true', 'false')
+        ).default(false).label('Destacado')
       });
 
       const { error: validationError, value: validatedData } = createGallerySchema.validate(req.body, { abortEarly: false });
@@ -64,15 +68,15 @@ export const adminCreateGalleryItem = async (req, res, next) => {
       if (supabase && req.file) {
         const fileExt = req.file.originalname.split('.').pop();
         const fileName = `gallery/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        
+
         const { data, error } = await supabase.storage
           .from('images')
           .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
-          
+
         if (error) {
           return res.status(500).json({ success: false, message: 'Image upload failed' });
         }
-        
+
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
         image_url = publicUrl;
       }
@@ -94,67 +98,76 @@ export const adminCreateGalleryItem = async (req, res, next) => {
       const item = result.rows[0];
 
       res.status(201).json({ success: true, item });
-    });
-  } catch (error) {
-    next(error);
-  }
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
 };
 
 export const adminUpdateGalleryItem = async (req, res, next) => {
+  // First find the gallery item
   try {
     const result = await gallery.findById(req.params.id);
     const item = result.rows[0];
-    
+
     if (!item) {
       return res.status(404).json({ success: false, message: 'Gallery item not found' });
     }
 
+    // Multer upload middleware - handles multipart/form-data
     upload.single('image')(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ success: false, message: err.message });
       }
 
-      const updateGallerySchema = Joi.object({
-        title: Joi.string().min(3).max(255).required().label('Título'),
-        description: Joi.string().max(1000).label('Descripción'),
-        category: Joi.string().max(50).label('Categoría'),
-        project_id: Joi.number().label('Project ID'),
-        event_id: Joi.number().label('Event ID'),
-        is_featured: Joi.boolean().label('Destacado')
-      });
+      try {
+        const updateGallerySchema = Joi.object({
+          title: Joi.string().min(3).max(255).required().label('Título'),
+          description: Joi.string().max(1000).label('Descripción'),
+          category: Joi.string().max(50).label('Categoría'),
+          project_id: Joi.number().label('Project ID'),
+          event_id: Joi.number().label('Event ID'),
+          is_featured: Joi.alternatives().try(
+            Joi.boolean(),
+            Joi.string().valid('true', 'false')
+          ).label('Destacado')
+        });
 
-      const { error: validationError, value: validatedData } = updateGallerySchema.validate(req.body, { abortEarly: false });
-      if (validationError) {
-        return res.status(400).json({ success: false, message: validationError.details.map(d => d.message).join(', ') });
-      }
-
-      let image_url = item.url;
-      if (supabase && req.file) {
-        const fileExt = req.file.originalname.split('.').pop();
-        const fileName = `gallery/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-          .from('images')
-          .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
-          
-        if (error) {
-          return res.status(500).json({ success: false, message: 'Image upload failed' });
+        const { error: validationError, value: validatedData } = updateGallerySchema.validate(req.body, { abortEarly: false });
+        if (validationError) {
+          return res.status(400).json({ success: false, message: validationError.details.map(d => d.message).join(', ') });
         }
-        
-        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
-        image_url = publicUrl;
+
+        let image_url = item.url;
+        if (supabase && req.file) {
+          const fileExt = req.file.originalname.split('.').pop();
+          const fileName = `gallery/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+
+          const { data, error } = await supabase.storage
+            .from('images')
+            .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+
+          if (error) {
+            return res.status(500).json({ success: false, message: 'Image upload failed' });
+          }
+
+          const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+          image_url = publicUrl;
+        }
+
+        const itemData = {
+          ...validatedData,
+          url: image_url,
+          thumbnail: image_url
+        };
+
+        const updateResult = await gallery.update(req.params.id, itemData);
+        const updatedItem = updateResult.rows[0];
+
+        res.json({ success: true, item: updatedItem });
+      } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
       }
-
-      const itemData = {
-        ...validatedData,
-        url: image_url,
-        thumbnail: image_url
-      };
-
-      const updateResult = await gallery.update(req.params.id, itemData);
-      const updatedItem = updateResult.rows[0];
-
-      res.json({ success: true, item: updatedItem });
     });
   } catch (error) {
     next(error);

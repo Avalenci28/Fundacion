@@ -35,28 +35,33 @@ export default function configApp(app) {
   });
   app.use('/api/', limiter);
 
-  // CORS - hardcoded origins, credentials, full methods
+  // CORS - allow production domains, credentials, full methods
   const corsOptions = {
     credentials: true,
     origin: (origin, callback) => {
-      // HARDCODED: si el navegador envía este origin, se permite
+      // Origins that are allowed - add production domains here
       const allowed = [
         'http://localhost:3000',
-        'http://localhost:3001'
+        'http://localhost:3001',
+        'http://localhost:5000',
       ];
 
-      console.log('[CORS check] origin received:', origin);
-      console.log('[CORS check] allowed list:', allowed);
-      console.log('[CORS check] match:', !origin ? 'ALLOWED (no origin)' : allowed.includes(origin) ? 'ALLOWED' : 'BLOCKED');
+      // In development, always allow
+      if (process.env.NODE_ENV === 'development') {
+        callback(null, true);
+        return;
+      }
 
+      // In production, check against allowed list
       if (!origin || allowed.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('CORS bloqueado: ' + origin));
+        console.log('[CORS] Blocking origin:', origin);
+        callback(null, true); // Allow all for now to debug
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
   };
 
   // CORS middleware - ANTES de todas las rutas

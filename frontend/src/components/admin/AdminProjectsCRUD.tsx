@@ -58,7 +58,12 @@ export default function AdminProjectsCRUD() {
     ['adminProjects'],
     async () => {
       const res = await adminApi.getAllProjects();
-      return res.data?.projects ?? res.data?.project ?? res.data ?? [];
+      // Handle various response structures
+      if (!res.data) return [];
+      if (Array.isArray(res.data)) return res.data;
+      if (Array.isArray(res.data?.projects)) return res.data.projects;
+      if (Array.isArray(res.data?.project)) return res.data.project;
+      return [];
     },
     {
       staleTime: 0,
@@ -66,7 +71,7 @@ export default function AdminProjectsCRUD() {
     }
   );
 
-  const projects: Project[] = (data as any) || [];
+  const projects: Project[] = Array.isArray(data) ? data : [];
 
   async function refreshProjects() {
     // invalidación simple para mantener consistencia

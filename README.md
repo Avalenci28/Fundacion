@@ -9,7 +9,7 @@ Una plataforma web profesional, moderna segura y visualmente impactante para la 
 ## Architecture
 
 - **Frontend:** Next.js 15 (App Router) + TypeScript + Tailwind CSS + Framer Motion + Zustand
-- **Backend:** Node.js + Express + MongoDB (Mongoose)
+- **Backend:** Node.js + Express + PostgreSQL (Supabase Session Pooler)
 - **Security:** JWT auth, bcrypt, helmet, rate limiting, CORS, input validation
 - **Admin:** Full CRUD dashboard with protected routes
 
@@ -54,16 +54,14 @@ Una plataforma web profesional, moderna segura y visualmente impactante para la 
 
 ### Prerequisites
 - Node.js 18+
-- MongoDB (local or Atlas)
+- PostgreSQL (Supabase) connection string
 
 ### Backend Setup
 
 ```bash
 cd backend
 npm install
-# Create .env file (already provided)
-# Ensure MongoDB is running
-npm run seed    # Seed initial admin and data
+# Create .env file (already provided with Supabase credentials)
 npm run dev     # Start development server on port 5000
 ```
 
@@ -96,7 +94,7 @@ WEB FUNDACION/
 ├── backend/
 │   ├── controllers/      # API route handlers
 │   ├── middleware/       # Auth, upload middleware
-│   ├── models/          # Mongoose schemas
+│   ├── db/             # PostgreSQL query utilities
 │   ├── routes/          # API routes
 │   ├── scripts/         # Seed scripts
 │   ├── server.js        # Express server
@@ -162,7 +160,11 @@ WEB FUNDACION/
 ### Backend (.env)
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/malambo-sonrie
+PGHOST=aws-0-us-west-2.pooler.supabase.com
+PGUSER=postgres.fulgeedluudhpmglteqp
+PGPASSWORD=your-password
+PGDATABASE=postgres
+PGPORT=5432
 JWT_SECRET=your-super-secret-key
 JWT_EXPIRE=7d
 ADMIN_EMAIL=admin@malambosonrie.org

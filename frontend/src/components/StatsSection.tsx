@@ -1,12 +1,22 @@
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { Users, Folder, Calendar, Heart } from 'lucide-react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { publicApi } from '@/lib/api';
 
 export default function StatsSection() {
+  const queryClient = useQueryClient();
   const { data: stats, isLoading } = useQuery('publicStats', () =>
-    publicApi.getPublicStats().then(res => res.data.stats)
+    publicApi.getPublicStats().then(res => res.data.stats),
+    { staleTime: 0 }
   );
+
+  // Refetch when window gains focus (to catch changes from admin)
+  useEffect(() => {
+    const handleFocus = () => queryClient.invalidateQueries('publicStats');
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [queryClient]);
 
   const statsData = [
     {
