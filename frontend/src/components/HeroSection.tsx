@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
 import { publicApi } from '@/lib/api';
@@ -88,14 +89,20 @@ export default function HeroSection() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="mb-12"
           >
-<motion.img 
-              src="/logo.svg" 
-              alt="Fundación Malambo Sonríe" 
-              className="w-24 h-24 mx-auto mb-6 drop-shadow-2xl" 
+<motion.div
+              className="relative w-24 h-24 mx-auto mb-6"
               initial={{ scale: 0, rotate: 180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            />
+            >
+              <Image
+                src="/logo.svg"
+                alt="Fundación Malambo Sonríe"
+                fill
+                className="object-contain drop-shadow-2xl"
+                sizes="96px"
+              />
+            </motion.div>
             <div className="text-6xl md:text-8xl font-black bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent mb-6">
               Malambo Sonríe
             </div>

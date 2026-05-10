@@ -62,6 +62,7 @@ export default function AdminGalleryCRUD() {
 
   async function refreshGallery() {
     await queryClient.invalidateQueries(['adminGallery']);
+    await queryClient.invalidateQueries('publicStats');
   }
 
   function openCreate() {

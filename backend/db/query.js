@@ -218,10 +218,10 @@ export const events = {
 // Posts queries
 export const posts = {
   create: (data) => pool.query(
-    `INSERT INTO posts (title, content, image, author, slug, category, is_active, is_featured)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+    `INSERT INTO posts (title, content, image, author, slug, category, is_active, is_featured, is_published)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
     [data.title, data.content, data.image || '', data.author || '', data.slug || data.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
-     data.category || 'blog', data.is_active !== false, data.is_featured || false]
+     data.category || 'blog', data.is_active !== false, data.is_featured || false, data.is_published !== false]
   ),
 
   findAll: (filters = {}) => {
@@ -255,13 +255,13 @@ export const posts = {
 
   update: (id, data) => pool.query(
     `UPDATE posts SET title = $1, content = $2, image = $3, author = $4, slug = $5,
-     category = $6, is_active = $7, is_featured = $8, updated_at = NOW()
-     WHERE id = $9 RETURNING *`,
-    [data.title, data.content, data.image, data.author, data.slug, data.category, data.is_active, data.is_featured, id]
+     category = $6, is_active = $7, is_featured = $8, is_published = $9, updated_at = NOW()
+     WHERE id = $10 RETURNING *`,
+    [data.title, data.content, data.image, data.author, data.slug, data.category, data.is_active, data.is_featured, data.is_published, id]
   ),
 
   delete: (id) => pool.query(
-    `DELETE FROM posts WHERE id = $1`,
+    `UPDATE posts SET is_active = false, updated_at = NOW() WHERE id = $1`,
     [id]
   )
 };

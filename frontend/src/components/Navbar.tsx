@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Heart, 
-  Menu, 
-  X, 
-  Sun, 
+import {
+  Heart,
+  Menu,
+  X,
+  Sun,
   Moon,
   ChevronDown
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import SocialLinks from '@/components/SocialLinks'
 
 const navLinks = [
   { href: '/', label: 'Inicio' },
@@ -64,7 +66,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative w-10 h-10">
-<img src="/logo.svg" alt="Fundación Malambo Sonríe" className="w-10 h-10 group-hover:scale-110 transition-transform drop-shadow-lg" />
+<Image src="/logo.svg" alt="Fundación Malambo Sonríe" width={40} height={40} className="group-hover:scale-110 transition-transform drop-shadow-lg" />
             </div>
             <div className="flex flex-col">
               <span className={`font-display font-bold text-xl leading-tight ${
@@ -111,6 +113,8 @@ export function Navbar() {
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
+
+            <SocialLinks className={isScrolled ? 'text-gray-600 dark:text-gray-400' : 'text-white/90'} />
 
 {user ? (
               <div className="relative group">

@@ -15,15 +15,18 @@ import {
   MessageSquare,
   Newspaper,
   Plus,
-  Trash2
+  Trash2,
+  Users
 } from 'lucide-react'
 
 import toast from 'react-hot-toast'
 
 import AdminProjectsCRUD from '@/components/admin/AdminProjectsCRUD'
 import AdminEventsCRUD from '@/components/admin/AdminEventsCRUD'
+import AdminPostsCRUD from '@/components/admin/AdminPostsCRUD'
 import AdminGalleryCRUD from '@/components/admin/AdminGalleryCRUD'
 import AdminContactsCRUD from '@/components/admin/AdminContactsCRUD'
+import AdminParticipationsCRUD from '@/components/admin/AdminParticipationsCRUD'
 import { useAuthStore } from '@/store/authStore'
 import { adminApi } from '@/lib/api'
 
@@ -33,10 +36,13 @@ const tabs = [
   { id: 'events', label: 'Eventos', icon: CalendarDays },
   { id: 'posts', label: 'Blog', icon: Newspaper },
   { id: 'gallery', label: 'Galería', icon: ImageIcon },
-  { id: 'contacts', label: 'Mensajes', icon: MessageSquare }
+  { id: 'contacts', label: 'Mensajes', icon: MessageSquare },
+  { id: 'participations', label: 'Participaciones', icon: Users }
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
+
+type ContentTabId = Exclude<TabId, 'dashboard' | 'contacts' | 'participations'>
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
@@ -46,11 +52,30 @@ export default function AdminPage() {
   const { user, isAuthenticated } = useAuthStore()
 
   // Queries for counting items - always enabled to show correct count
-  const { data: projectsData, refetch: refetchProjects } = useQuery(['adminProjects'], () => adminApi.getAllProjects().then(res => res.data))
-  const { data: eventsData, refetch: refetchEvents } = useQuery(['adminEvents'], () => adminApi.getAllEvents().then(res => res.data))
-  const { data: postsData, refetch: refetchPosts } = useQuery(['adminPosts'], () => adminApi.getAllPosts().then(res => res.data))
-  const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], () => adminApi.getAllGallery().then(res => res.data))
-  const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], () => adminApi.getAllContacts().then(res => res.data))
+  const { data: projectsData, refetch: refetchProjects } = useQuery(['adminProjects'], async () => {
+    try { return await adminApi.getAllProjects().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: eventsData, refetch: refetchEvents } = useQuery(['adminEvents'], async () => {
+    try { return await adminApi.getAllEvents().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: postsData, refetch: refetchPosts } = useQuery(['adminPosts'], async () => {
+    try { return await adminApi.getAllPosts().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], async () => {
+    try { return await adminApi.getAllGallery().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], async () => {
+    try { return await adminApi.getAllContacts().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: participationsData, refetch: refetchParticipations } = useQuery(['adminParticipations'], async () => {
+    try { return await adminApi.getAllParticipations().then(res => res.data) }
+    catch { return null }
+  })
 
   const getCount = (tab?: string) => {
     const t = tab || activeTab
@@ -60,6 +85,7 @@ export default function AdminPage() {
       case 'posts': return postsData?.posts?.length ?? 0
       case 'gallery': return galleryData?.gallery?.length ?? 0
       case 'contacts': return contactsData?.contacts?.filter((c: any) => !c.is_read).length ?? 0
+      case 'participations': return participationsData?.participations?.filter((p: any) => p.status === 'pending').length ?? 0
       default: return 0
     }
   }
@@ -71,6 +97,7 @@ export default function AdminPage() {
     else if (activeTab === 'posts') refetchPosts()
     else if (activeTab === 'gallery') refetchGallery()
     else if (activeTab === 'contacts') refetchContacts()
+    else if (activeTab === 'participations') refetchParticipations()
   }, [activeTab])
 
   useEffect(() => {
@@ -226,7 +253,7 @@ export default function AdminPage() {
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           </h2>
 
-          {activeTab !== 'contacts' && activeTab !== 'dashboard' && (
+          {(activeTab as string) !== 'contacts' && (activeTab as string) !== 'dashboard' && (activeTab as string) !== 'participations' && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -243,10 +270,14 @@ export default function AdminPage() {
           <AdminProjectsCRUD />
         ) : activeTab === 'events' ? (
           <AdminEventsCRUD />
+        ) : activeTab === 'posts' ? (
+          <AdminPostsCRUD />
         ) : activeTab === 'gallery' ? (
           <AdminGalleryCRUD />
         ) : activeTab === 'contacts' ? (
           <AdminContactsCRUD />
+        ) : activeTab === 'participations' ? (
+          <AdminParticipationsCRUD />
         ) : (
           <motion.div
             initial={{ scale: 0.98, opacity: 0 }}
@@ -322,7 +353,7 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {activeTab !== 'contacts' && activeTab !== 'dashboard' && (
+        {(activeTab as string) !== 'contacts' && (activeTab as string) !== 'dashboard' && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

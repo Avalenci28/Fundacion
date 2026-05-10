@@ -1,4 +1,6 @@
 
+import pool from '../config/database.js';
+
 export const getStats = async (req, res, next) => {
   try {
     const [

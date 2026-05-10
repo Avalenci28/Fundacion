@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="50%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="95" fill="url(#bgGrad2)"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
+  <polygon points="100,45 112,80 150,80 120,105 132,145 100,120 68,145 80,105 50,80 88,80" fill="url(#starGrad)" stroke="white" stroke-width="2"/>
+  <circle cx="100" cy="92" r="22" fill="#FEF3C7"/>
+  <circle cx="92" cy="86" r="4" fill="#831743"/>
+  <circle cx="108" cy="86" r="4" fill="#831743"/>
+  <path d="M92 98 Q100 108 108 98" fill="none" stroke="#831743" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -66,6 +66,8 @@ router.delete('/contacts/:id', deleteContact);
 // Participations
 router.get('/participations', getAllParticipations);
 router.put('/participations/:id/status', updateParticipationStatus);
+router.put('/participations/:id/approve', updateParticipationStatus);
+router.put('/participations/:id/reject', updateParticipationStatus);
 router.delete('/participations/:id', deleteParticipation);
 
 export default router;

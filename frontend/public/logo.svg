@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F9A8D4"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="95" fill="url(#bgGrad)"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
+  <path d="M100 55 C75 55 55 75 55 100 C55 130 100 155 100 155 C100 155 145 130 145 100 C145 75 125 55 100 55 Z" fill="url(#heartGrad)" stroke="white" stroke-width="2"/>
+  <path d="M80 105 Q100 125 120 105" fill="none" stroke="#831743" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="82" cy="88" r="6" fill="#831743"/>
+  <circle cx="118" cy="88" r="6" fill="#831743"/>
+  <circle cx="84" cy="86" r="2" fill="white"/>
+  <circle cx="120" cy="86" r="2" fill="white"/>
+  <text x="100" y="180" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="14" font-weight="900" fill="#831743">SONRÍE</text>
+</svg>

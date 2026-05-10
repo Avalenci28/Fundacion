@@ -48,30 +48,28 @@ const { name, email, phone, skills = '', availability = '', motivation } = req.b
 export const getAllParticipations = async (req, res, next) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
-    const query = {};
-    
-    if (status) query.status = status;
 
-    let queryText = 'SELECT * FROM participations';
+    let queryText = 'SELECT * FROM participations WHERE 1=1';
     const queryParams = [];
-    
+
     if (status) {
       queryParams.push(status);
-      queryText += ' WHERE status = $1';
+      queryText += ` AND status = $${queryParams.length}`;
     }
-    
+
     queryText += ' ORDER BY created_at DESC';
+
+    const offset = (page - 1) * limit;
     queryParams.push(limit * 1);
     queryText += ` LIMIT $${queryParams.length}`;
-    
-    const offset = (page - 1) * limit;
+
     queryParams.push(offset);
     queryText += ` OFFSET $${queryParams.length}`;
 
     const result = await pool.query(queryText, queryParams);
-    
+
     // Get total count
-    const countResult = status 
+    const countResult = status
       ? await pool.query('SELECT COUNT(*) FROM participations WHERE status = $1', [status])
       : await pool.query('SELECT COUNT(*) FROM participations');
 
@@ -91,12 +89,19 @@ export const getAllParticipations = async (req, res, next) => {
 export const updateParticipationStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    let { status } = req.body;
+
+    // Determine status from the route if approve/reject endpoint
+    if (req.path.endsWith('/approve')) {
+      status = 'approved';
+    } else if (req.path.endsWith('/reject')) {
+      status = 'rejected';
+    }
 
     if (!['pending', 'approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Estado inválido' 
+      return res.status(400).json({
+        success: false,
+        message: 'Estado inválido'
       });
     }
 
@@ -106,9 +111,9 @@ export const updateParticipationStatus = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Participación no encontrada' 
+      return res.status(404).json({
+        success: false,
+        message: 'Participación no encontrada'
       });
     }
 

@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Heart, Mail, Phone, MapPin } from 'lucide-react'
+import SocialLinks from '@/components/SocialLinks'
 
 export function Footer() {
   return (
@@ -11,7 +13,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-<img src="/logo.svg" alt="Fundación Malambo Sonríe" className="w-8 h-8 drop-shadow-lg" />
+<Image src="/logo.svg" alt="Fundación Malambo Sonríe" width={32} height={32} className="drop-shadow-lg" />
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg">Malambo</span>
                 <span className="font-display font-bold text-sm text-primary-400 -mt-1">Sonríe!</span>
@@ -21,18 +23,7 @@ export function Footer() {
               Conectando corazones, construyendo comunidad. Juntos hacemos de Malambo un mejor lugar para vivir.
             </p>
 
-            {/* ICONOS ARREGLADOS */}
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-500 transition-colors">
-                <span className="text-sm font-bold">FB</span>
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-500 transition-colors">
-                <span className="text-sm font-bold">IG</span>
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-500 transition-colors">
-                <span className="text-sm font-bold">TW</span>
-              </a>
-            </div>
+            <SocialLinks />
           </div>
 
           {/* Quick Links */}

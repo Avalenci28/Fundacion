@@ -7,19 +7,18 @@ import supabase from '../lib/supabase.js';
 export const getAllPosts = async (req, res, next) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    
-    let query = `SELECT * FROM posts WHERE is_published = true`;
-    const params = [];
-    let paramCount = 1;
-    
-    query += ` ORDER BY created_at DESC LIMIT $${paramCount++} OFFSET $${paramCount++}`;
-    params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
-    
-    const result = await pool.query(query, params);
-    
-    const countResult = await pool.query(`SELECT COUNT(*) FROM posts WHERE is_published = true`);
+
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    // Use direct query filtering is_active = true (same pattern as projects)
+    const result = await pool.query(
+      `SELECT * FROM posts WHERE is_active = true ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+      [parseInt(limit), offset]
+    );
+
+    const countResult = await pool.query(`SELECT COUNT(*) FROM posts WHERE is_active = true`);
     const count = parseInt(countResult.rows[0].count);
-    
+
     res.json({
       success: true,
       posts: result.rows,
@@ -88,7 +87,8 @@ export const adminCreatePost = async (req, res, next) => {
         is_published: validatedData.is_published,
         is_featured: validatedData.is_featured,
         author_id: req.user.id,
-        slug: validatedData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+        slug: validatedData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+        is_active: true
       };
 
       const result = await posts.create(postData);
@@ -160,7 +160,8 @@ export const adminUpdatePost = async (req, res, next) => {
           ...validatedData,
           image: image_url,
           tags: validatedData.tags ? validatedData.tags.split(',').map(t => t.trim()) : post.tags,
-          slug: validatedData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+          slug: validatedData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+          is_active: post.is_active
         };
 
         const updateResult = await posts.update(req.params.id, postData);

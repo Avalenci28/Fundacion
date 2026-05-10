@@ -76,6 +76,7 @@ export default function AdminProjectsCRUD() {
   async function refreshProjects() {
     // invalidación simple para mantener consistencia
     await queryClient.invalidateQueries(['adminProjects']);
+    await queryClient.invalidateQueries('publicStats');
   }
 
   function openCreate() {
@@ -193,7 +194,7 @@ export default function AdminProjectsCRUD() {
       </div>
 
       {isLoading && <div>Cargando proyectos...</div>}
-      {isError && <div className="text-red-500">Error cargando: {String((error as any)?.message ?? error)}</div>}
+      {isError && <div className="text-red-500">Error cargando: {error?.response?.data?.message ?? (error instanceof Error ? error.message : String(error))}</div>}
 
       {!isLoading && !isError && (
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden">

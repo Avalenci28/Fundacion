@@ -32,7 +32,21 @@
       "Bash(node testIdType.mjs)",
       "Bash(npx tsc --noEmit src/app/admin/page.tsx)",
       "Bash(node --check src/app/admin/page.tsx)",
-      "Bash(node scripts/addContactColumns.mjs)"
+      "Bash(node scripts/addContactColumns.mjs)",
+      "Bash(node backend/scripts/migrate_skills.mjs)",
+      "Bash(node backend/scripts/check_participations.mjs)",
+      "Bash(\"c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/frontend/public/logo.svg\":*)",
+      "Bash(node:*)",
+      "Bash(npm run build)",
+      "Bash(npx next build)",
+      "Bash(curl -s http://localhost:5000/api/stats/public)",
+      "Bash(curl -s --connect-timeout 5 http://localhost:5000/api/health)",
+      "Bash(curl -s --connect-timeout 10 --max-time 15 http://localhost:5000/api/stats/public)",
+      "Bash(curl -s --max-time 10 http://localhost:5000/api/stats/public)",
+      "Bash(curl -s --max-time 10 \"http://localhost:5000/api/projects?limit=5\")",
+      "Bash(curl -s --max-time 10 \"http://localhost:5000/api/projects?limit=10\")",
+      "Bash(curl -s --max-time 10 \"http://localhost:5000/api/events?limit=3\")",
+      "Bash(curl -s --max-time 10 \"http://localhost:5000/api/health\")"
     ]
   }
 }

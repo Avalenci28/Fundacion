@@ -70,6 +70,7 @@ export default function AdminEventsCRUD() {
 
   async function refreshEvents() {
     await queryClient.invalidateQueries(['adminEvents']);
+    await queryClient.invalidateQueries('publicStats');
   }
 
   function openCreate() {

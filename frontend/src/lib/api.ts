@@ -1,10 +1,11 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  timeout: 15000,
 })
 
 api.interceptors.request.use((config) => {
@@ -12,26 +13,31 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-  // Para requests JSON, explicitly set Accept + Content-Type.
-  // Para FormData (multipart/form-data), NO forzar Content-Type
-  // para que axios/browser lo seteen automáticamente con el boundary.
-  if (config.data instanceof FormData) {
-    // Don't set Content-Type for FormData — browser sets it with boundary
-    config.headers['Accept'] = 'application/json'
-  } else if (config.method === 'post' || config.method === 'put' || config.method === 'patch') {
+  // Only set Content-Type for non-FormData requests
+  // For FormData, let axios set it automatically with boundary
+  if (!(config.data instanceof FormData)) {
     config.headers['Content-Type'] = 'application/json'
-    config.headers['Accept'] = 'application/json'
   }
+  config.headers['Accept'] = 'application/json'
   return config
 })
 
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: AxiosError) => {
+    // Handle network errors more gracefully
+    if (!error.response) {
+      // Network error (no response) - could be CORS, backend down, or timeout
+      console.error('[API Error] Network error:', error.message)
+      const message = error.message.includes('timeout') || error.message.includes('Timeout')
+        ? 'El servidor está tardando demasiado. Intenta de nuevo.'
+        : 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.'
+      return Promise.reject(new Error(message))
+    }
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        localStorage.removeItem('token')
         window.location.href = '/login'
       }
     }
