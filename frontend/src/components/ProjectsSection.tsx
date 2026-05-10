@@ -3,6 +3,9 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { publicApi } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 interface Project {
   _id: string;
@@ -18,10 +21,25 @@ interface Project {
   raised_amount: string;
 }
 
+const getImageUrl = (image: string): string => {
+  if (!image) {
+    console.log('[ProjectsSection] No image provided, using fallback');
+    return 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&fit=crop';
+  }
+  if (image.startsWith('http')) {
+    console.log('[ProjectsSection] Using HTTP image URL:', image);
+    return image;
+  }
+  const fullUrl = `${API_URL}${image.startsWith('/') ? image : `/${image}`}`;
+  console.log('[ProjectsSection] Built image URL:', fullUrl, 'from original:', image);
+  return fullUrl;
+};
+
 export default function ProjectsSection() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'featured' | 'all'>('featured');
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch from PostgreSQL backend using publicApi
@@ -162,8 +180,8 @@ export default function ProjectsSection() {
               >
                 {/* Project Image */}
                 <div className="h-64 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 group-hover:scale-110 transition-transform duration-700">
-                  <img 
-                    src={project.image || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&fit=crop'}
+                  <img
+                    src={getImageUrl(project.image)}
                     alt={project.title}
                     className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-700"
                   />
@@ -199,6 +217,7 @@ export default function ProjectsSection() {
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
+                      onClick={() => router.push(`/proyectos/${project.id}`)}
                       className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       Ver Proyecto

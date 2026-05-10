@@ -46,7 +46,8 @@
       "Bash(curl -s --max-time 10 \"http://localhost:5000/api/projects?limit=5\")",
       "Bash(curl -s --max-time 10 \"http://localhost:5000/api/projects?limit=10\")",
       "Bash(curl -s --max-time 10 \"http://localhost:5000/api/events?limit=3\")",
-      "Bash(curl -s --max-time 10 \"http://localhost:5000/api/health\")"
+      "Bash(curl -s --max-time 10 \"http://localhost:5000/api/health\")",
+      "Bash(curl -s \"http://localhost:5000/api/projects?limit=3\")"
     ]
   }
 }

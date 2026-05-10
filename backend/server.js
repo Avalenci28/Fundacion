@@ -43,6 +43,9 @@ app.use('/api/admin', (await import('./routes/admin.js')).default);
 app.use('/api/stats', (await import('./routes/stats.js')).default);
 app.use('/api/volunteers', (await import('./routes/volunteers.js')).default);
 
+// ✅ Servir archivos estáticos de uploads (para imágenes locales)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ✅ Health Check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

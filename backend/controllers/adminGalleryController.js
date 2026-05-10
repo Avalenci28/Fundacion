@@ -74,7 +74,8 @@ export const adminCreateGalleryItem = async (req, res, next) => {
           .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
 
         if (error) {
-          return res.status(500).json({ success: false, message: 'Image upload failed' });
+          console.error('Supabase upload error:', error);
+          return res.status(500).json({ success: false, message: 'Image upload failed: ' + error.message });
         }
 
         const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
@@ -99,7 +100,8 @@ export const adminCreateGalleryItem = async (req, res, next) => {
 
       res.status(201).json({ success: true, item });
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      console.error('Gallery create error:', error);
+      res.status(500).json({ success: false, message: 'Image upload failed: ' + error.message });
     }
   });
 };
@@ -148,7 +150,8 @@ export const adminUpdateGalleryItem = async (req, res, next) => {
             .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
 
           if (error) {
-            return res.status(500).json({ success: false, message: 'Image upload failed' });
+            console.error('Supabase upload error:', error);
+            return res.status(500).json({ success: false, message: 'Image upload failed: ' + error.message });
           }
 
           const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);

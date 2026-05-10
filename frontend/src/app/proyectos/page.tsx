@@ -8,6 +8,14 @@ import { useQuery } from 'react-query'
 import { ArrowRight, Filter, CheckCircle2, Clock, Rocket } from 'lucide-react'
 import { publicApi } from '@/lib/api'
 
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+
+const getImageUrl = (image: string): string => {
+  if (!image) return '/placeholder.jpg'
+  if (image.startsWith('http')) return image
+  return `${API_URL}${image.startsWith('/') ? image : `/${image}`}`
+}
+
 const statusFilters = [
   { value: '', label: 'Todos', icon: Filter },
   { value: 'Completado', label: 'Completados', icon: CheckCircle2 },
@@ -76,7 +84,7 @@ export default function ProjectsPage() {
                 <div className="group bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 dark:border-gray-700">
                   <div className="relative h-56 overflow-hidden">
                     <Image
-                      src={project.image || '/placeholder.jpg'}
+                      src={getImageUrl(project.image)}
                       alt={project.title}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -103,9 +111,9 @@ export default function ProjectsPage() {
                       <div className="text-sm text-gray-500">
                         <span className="font-semibold text-primary-500">{project.beneficiaries}</span> beneficiarios
                       </div>
-                      <button className="flex items-center gap-1 text-primary-500 font-semibold text-sm hover:underline">
+                      <Link href={`/proyectos/${project.id}`} className="flex items-center gap-1 text-primary-500 font-semibold text-sm hover:underline">
                         Ver más <ArrowRight className="w-4 h-4" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
