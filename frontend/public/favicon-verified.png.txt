@@ -1,0 +1,9 @@
+Este archivo es solo una referencia.
+
+El favicon activo se define en: frontend/src/app/layout.tsx
+- link rel="icon" href="/Gemini_Generated_Image_l9i6p3l9i6p3l9i6p3l9i6p3l9i6.png"
+
+Para validar:
+1) Abrir http://localhost:3000/Gemini_Generated_Image_l9i6p3l9i6p3l9i6p3l9i6p3l9i6.png
+2) Ver que cargue (status 200).
+
