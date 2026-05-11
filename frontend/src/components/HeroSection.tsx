@@ -53,11 +53,20 @@ export default function HeroSection() {
   }, [queryClient]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-500 via-purple-500 to-pink-600">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated Background Shapes */}
       <div className="absolute inset-0">
+        {/* Fondo con imagen de niños riéndose (si existe) */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-100"
+          style={{ backgroundImage: "url('/vecteezy_generational-connection-in-a-hispanic-heritage-setting-ai_33522350.jpg')" }}
+          aria-hidden="true"
+        />
+        {/* Overlay para legibilidad (ajusta si lo necesitas) */}
+        <div className="absolute inset-0 bg-black/10" aria-hidden="true" />
+        {/* Shapes animadas (opcionales) */}
         <motion.div 
-          className="absolute top-20 left-20 w-72 h-72 bg-pink-400/20 rounded-full blur-xl"
+          className="absolute top-20 left-20 w-72 h-72 bg-pink-400/10 rounded-full blur-xl"
           animate={{ 
             y: [0, -30, 0],
             scale: [1, 1.05, 1]

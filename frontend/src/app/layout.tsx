@@ -18,7 +18,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   icons: {
-    icon: '/favicon.ico',
+    icon: '/Gemini_Generated_Image_l9i6p3l9i6p3l9i6p3l9i6.png',
   },
   title: 'Malambo Sonríe - Conectando corazones, construyendo comunidad',
   description: 'Iniciativa social enfocada en mejorar la calidad de vida de las personas mediante actividades comunitarias, proyectos sociales y participación ciudadana.',
@@ -28,6 +28,7 @@ export const metadata: Metadata = {
   },
 }
 
+
 export default function RootLayout({
   children,
 }: {
@@ -35,7 +36,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/png" href="/Gemini_Generated_Image_l9i6p3l9i6p3l9i6p3l9i6.png" />
+      </head>
       <body className="font-sans antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+
         <Providers>
           <Navbar />
           <main>{children}</main>
