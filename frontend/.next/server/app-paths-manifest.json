@@ -1,8 +1,6 @@
 {
   "/page": "app/page.js",
-  "/participar/page": "app/participar/page.js",
-  "/contacto/page": "app/contacto/page.js",
   "/login/page": "app/login/page.js",
-  "/proyectos/[id]/page": "app/proyectos/[id]/page.js",
+  "/contacto/page": "app/contacto/page.js",
   "/admin/page": "app/admin/page.js"
 }
