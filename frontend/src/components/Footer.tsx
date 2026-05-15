@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, Phone } from 'lucide-react'
 import SocialLinks from '@/components/SocialLinks'
 
 export function Footer() {
@@ -29,17 +29,13 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-end">
             <h3 className="font-display font-semibold text-lg mb-4">Contacto</h3>
             <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-primary-500 mt-0.5" />
-                <span className="text-gray-400 text-sm">Malambo, Atlantico, Colombia</span>
-              </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-primary-500" />
-                <span className="text-gray-400 text-sm">+57 300 123 4567</span>
+                <span className="text-gray-400 text-sm">312 5812294</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary-500" />
-                <span className="text-gray-400 text-sm">info@malambosonrie.org</span>
+                <span className="text-gray-400 text-sm">malambosonrie@gmail.com</span>
               </li>
             </ul>
           </div>

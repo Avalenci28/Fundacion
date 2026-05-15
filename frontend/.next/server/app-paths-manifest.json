@@ -1,7 +1,8 @@
 {
   "/admin/page": "app/admin/page.js",
-  "/terminos/page": "app/terminos/page.js",
-  "/privacidad/page": "app/privacidad/page.js",
   "/page": "app/page.js",
-  "/tratamiento-datos/page": "app/tratamiento-datos/page.js"
+  "/privacidad/page": "app/privacidad/page.js",
+  "/tratamiento-datos/page": "app/tratamiento-datos/page.js",
+  "/terminos/page": "app/terminos/page.js",
+  "/contacto/page": "app/contacto/page.js"
 }
