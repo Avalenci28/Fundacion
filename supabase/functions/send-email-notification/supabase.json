@@ -1,0 +1,11 @@
+﻿{
+  "functions": {
+    "send-email-notification": {
+      "timeout": 60,
+      "memory": 256
+    }
+  },
+  "env": {
+    "RESEND_API_KEY": "your-resend-api-key-here"
+  }
+}
