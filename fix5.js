@@ -1,0 +1,1 @@
+﻿const fs=require("fs");let c=fs.readFileSync("frontend/src/app/contacto/page.tsx","utf8");c=c.replace(/className=\\{\\\\ /g,"className={\`\${{social.color} ");fs.writeFileSync("frontend/src/app/contacto/page.tsx",c,"utf8");console.log("done");

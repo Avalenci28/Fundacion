@@ -1,7 +1,7 @@
 {
+  "/contacto/page": "app/contacto/page.js",
   "/page": "app/page.js",
-  "/privacidad/page": "app/privacidad/page.js",
-  "/tratamiento-datos/page": "app/tratamiento-datos/page.js",
-  "/terminos/page": "app/terminos/page.js",
-  "/contacto/page": "app/contacto/page.js"
+  "/galeria/page": "app/galeria/page.js",
+  "/eventos/page": "app/eventos/page.js",
+  "/proyectos/page": "app/proyectos/page.js"
 }
