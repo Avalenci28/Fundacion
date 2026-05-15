@@ -1,0 +1,164 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { useQuery } from 'react-query'
+
+import {
+  CalendarDays,
+  FolderOpen,
+  ImageIcon,
+  LayoutDashboard,
+  MessageSquare,
+  Users
+} from 'lucide-react'
+
+import AdminProjectsCRUD from '@/components/admin/AdminProjectsCRUD'
+import AdminEventsCRUD from '@/components/admin/AdminEventsCRUD'
+import AdminGalleryCRUD from '@/components/admin/AdminGalleryCRUD'
+import AdminContactsCRUD from '@/components/admin/AdminContactsCRUD'
+import AdminParticipationsCRUD from '@/components/admin/AdminParticipationsCRUD'
+import { useAuthStore } from '@/store/authStore'
+import { adminApi } from '@/lib/api'
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'projects', label: 'Proyectos', icon: FolderOpen },
+  { id: 'events', label: 'Eventos', icon: CalendarDays },
+  { id: 'gallery', label: 'Galeria', icon: ImageIcon },
+  { id: 'contacts', label: 'Mensajes', icon: MessageSquare },
+  { id: 'participations', label: 'Participaciones', icon: Users }
+] as const
+
+type TabId = (typeof tabs)[number]['id']
+
+export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard')
+  const [mounted, setMounted] = useState(false)
+
+  const router = useRouter()
+  const { user, isAuthenticated } = useAuthStore()
+
+  const { data: projectsData, refetch: refetchProjects } = useQuery(['adminProjects'], async () => {
+    try { return await adminApi.getAllProjects().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: eventsData, refetch: refetchEvents } = useQuery(['adminEvents'], async () => {
+    try { return await adminApi.getAllEvents().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], async () => {
+    try { return await adminApi.getAllGallery().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], async () => {
+    try { return await adminApi.getAllContacts().then(res => res.data) }
+    catch { return null }
+  })
+  const { data: participationsData, refetch: refetchParticipations } = useQuery(['adminParticipations'], async () => {
+    try { return await adminApi.getAllParticipations().then(res => res.data) }
+    catch { return null }
+  })
+
+  useEffect(() => {
+    if (activeTab === 'projects') refetchProjects()
+    else if (activeTab === 'events') refetchEvents()
+    else if (activeTab === 'gallery') refetchGallery()
+    else if (activeTab === 'contacts') refetchContacts()
+    else if (activeTab === 'participations') refetchParticipations()
+  }, [activeTab])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (mounted && (!isAuthenticated || user?.role !== 'admin')) {
+      router.replace('/login')
+    }
+  }, [mounted, isAuthenticated, user, router])
+
+  if (!mounted || !isAuthenticated || user?.role !== 'admin') {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500' />
+      </div>
+    )
+  }
+
+  const renderContent = () => {
+    if (activeTab === 'dashboard') {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className='space-y-8'
+        >
+          <h2 className='text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent'>
+            Panel de Administracion
+          </h2>
+        </motion.div>
+      )
+    }
+
+    if (activeTab === 'projects') return <AdminProjectsCRUD />
+    if (activeTab === 'events') return <AdminEventsCRUD />
+    if (activeTab === 'gallery') return <AdminGalleryCRUD />
+    if (activeTab === 'contacts') return <AdminContactsCRUD />
+    if (activeTab === 'participations') return <AdminParticipationsCRUD />
+
+    return null
+  }
+
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-24 pb-16'>
+      <div className='max-w-7xl mx-auto px-6 lg:px-8'>
+        <div className='grid lg:grid-cols-4 gap-10'>
+          <motion.nav
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            className='lg:col-span-1'
+          >
+            <div className='sticky top-28 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8'>
+              <h1 className='text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-8'>
+                Admin Panel
+              </h1>
+
+              <div className='space-y-4'>
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0 }}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center gap-4 p-6 rounded-2xl text-left font-semibold transition-all group hover:shadow-xl
+                        activeTab === tab.id?`n 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-2xl shadow-indigo-500/30 scale-[1.02]'
+                          : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 text-gray-700 dark:text-gray-300 hover:scale-[1.02]'
+                      }}
+                    >
+                      <Icon className='w-7 h-7 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity' />
+                      <span>{tab.label}</span>
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </div>
+          </motion.nav>
+
+          <motion.main initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className='lg:col-span-3'>
+            {renderContent()}
+          </motion.main>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+
+

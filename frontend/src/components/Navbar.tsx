@@ -20,7 +20,7 @@ const navLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/proyectos', label: 'Proyectos' },
   { href: '/eventos', label: 'Eventos' },
-  { href: '/blog', label: 'Blog' },
+  
   { href: '/galeria', label: 'Galería' },
   { href: '/contacto', label: 'Contacto' },
 ]

@@ -5,28 +5,14 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useQuery } from 'react-query'
 
-import {
-  CalendarDays,
-  Check,
-  Edit2,
-  FolderOpen,
-  ImageIcon,
-  LayoutDashboard,
-  MessageSquare,
-  Newspaper,
-  Plus,
-  Trash2,
-  Users
-} from 'lucide-react'
+import { CalendarDays, Check, Edit2, FolderOpen, ImageIcon, LayoutDashboard, MessageSquare, Users, Plus, Trash2 } from 'lucide-react'
 
 import toast from 'react-hot-toast'
 
 import AdminProjectsCRUD from '@/components/admin/AdminProjectsCRUD'
 import AdminEventsCRUD from '@/components/admin/AdminEventsCRUD'
-import AdminPostsCRUD from '@/components/admin/AdminPostsCRUD'
 import AdminGalleryCRUD from '@/components/admin/AdminGalleryCRUD'
 import AdminContactsCRUD from '@/components/admin/AdminContactsCRUD'
-import AdminParticipationsCRUD from '@/components/admin/AdminParticipationsCRUD'
 import { useAuthStore } from '@/store/authStore'
 import { adminApi } from '@/lib/api'
 
@@ -34,15 +20,12 @@ const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'projects', label: 'Proyectos', icon: FolderOpen },
   { id: 'events', label: 'Eventos', icon: CalendarDays },
-  { id: 'posts', label: 'Blog', icon: Newspaper },
+  { id: 'participations', label: 'Participaciones', icon: Users },
   { id: 'gallery', label: 'Galería', icon: ImageIcon },
-  { id: 'contacts', label: 'Mensajes', icon: MessageSquare },
-  { id: 'participations', label: 'Participaciones', icon: Users }
+  { id: 'contacts', label: 'Mensajes', icon: MessageSquare }
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
-
-type ContentTabId = Exclude<TabId, 'dashboard' | 'contacts' | 'participations'>
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
@@ -52,40 +35,20 @@ export default function AdminPage() {
   const { user, isAuthenticated } = useAuthStore()
 
   // Queries for counting items - always enabled to show correct count
-  const { data: projectsData, refetch: refetchProjects } = useQuery(['adminProjects'], async () => {
-    try { return await adminApi.getAllProjects().then(res => res.data) }
-    catch { return null }
-  })
-  const { data: eventsData, refetch: refetchEvents } = useQuery(['adminEvents'], async () => {
-    try { return await adminApi.getAllEvents().then(res => res.data) }
-    catch { return null }
-  })
-  const { data: postsData, refetch: refetchPosts } = useQuery(['adminPosts'], async () => {
-    try { return await adminApi.getAllPosts().then(res => res.data) }
-    catch { return null }
-  })
-  const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], async () => {
-    try { return await adminApi.getAllGallery().then(res => res.data) }
-    catch { return null }
-  })
-  const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], async () => {
-    try { return await adminApi.getAllContacts().then(res => res.data) }
-    catch { return null }
-  })
-  const { data: participationsData, refetch: refetchParticipations } = useQuery(['adminParticipations'], async () => {
-    try { return await adminApi.getAllParticipations().then(res => res.data) }
-    catch { return null }
-  })
+  const { data: projectsData, refetch: refetchProjects } = useQuery(['adminProjects'], () => adminApi.getAllProjects().then(res => res.data))
+  const { data: eventsData, refetch: refetchEvents } = useQuery(['adminEvents'], () => adminApi.getAllEvents().then(res => res.data))
+  
+  const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], () => adminApi.getAllGallery().then(res => res.data))
+  const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], () => adminApi.getAllContacts().then(res => res.data))
 
   const getCount = (tab?: string) => {
     const t = tab || activeTab
     switch (t) {
       case 'projects': return projectsData?.projects?.length ?? 0
       case 'events': return eventsData?.events?.length ?? 0
-      case 'posts': return postsData?.posts?.length ?? 0
+      case 'participations': return 0
       case 'gallery': return galleryData?.gallery?.length ?? 0
       case 'contacts': return contactsData?.contacts?.filter((c: any) => !c.is_read).length ?? 0
-      case 'participations': return participationsData?.participations?.filter((p: any) => p.status === 'pending').length ?? 0
       default: return 0
     }
   }
@@ -94,10 +57,9 @@ export default function AdminPage() {
   useEffect(() => {
     if (activeTab === 'projects') refetchProjects()
     else if (activeTab === 'events') refetchEvents()
-    else if (activeTab === 'posts') refetchPosts()
+    
     else if (activeTab === 'gallery') refetchGallery()
     else if (activeTab === 'contacts') refetchContacts()
-    else if (activeTab === 'participations') refetchParticipations()
   }, [activeTab])
 
   useEffect(() => {
@@ -172,11 +134,11 @@ export default function AdminPage() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-pink-100 rounded-xl">
-                  <Newspaper className="w-8 h-8 text-pink-600" />
+                  <Users className="w-8 h-8 text-pink-600" />
                 </div>
-                <span className="text-sm text-gray-500">Posts</span>
+                <span className="text-sm text-gray-500">Participaciones</span>
               </div>
-              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('posts')}</div>
+              <div className="text-4xl font-bold text-gray-900 dark:text-white">{getCount('participations')}</div>
             </motion.div>
 
             <motion.div
@@ -253,7 +215,7 @@ export default function AdminPage() {
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           </h2>
 
-          {(activeTab as string) !== 'contacts' && (activeTab as string) !== 'dashboard' && (activeTab as string) !== 'participations' && (
+          {activeTab !== 'contacts' && activeTab !== 'dashboard' && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -270,14 +232,10 @@ export default function AdminPage() {
           <AdminProjectsCRUD />
         ) : activeTab === 'events' ? (
           <AdminEventsCRUD />
-        ) : activeTab === 'posts' ? (
-          <AdminPostsCRUD />
         ) : activeTab === 'gallery' ? (
           <AdminGalleryCRUD />
         ) : activeTab === 'contacts' ? (
           <AdminContactsCRUD />
-        ) : activeTab === 'participations' ? (
-          <AdminParticipationsCRUD />
         ) : (
           <motion.div
             initial={{ scale: 0.98, opacity: 0 }}
@@ -353,7 +311,7 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {(activeTab as string) !== 'contacts' && (activeTab as string) !== 'dashboard' && (
+        {activeTab !== 'contacts' && activeTab !== 'dashboard' && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

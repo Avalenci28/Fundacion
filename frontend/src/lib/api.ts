@@ -58,10 +58,6 @@ export const publicApi = {
   getEvent: (id: string) => api.get(`/events/${id}`),
   getFeaturedEvents: () => api.get('/events/featured'),
 
-  // Posts
-  getPosts: (params?: any) => api.get('/posts', { params }),
-  getPost: (slug: string) => api.get(`/posts/${slug}`),
-  getFeaturedPosts: () => api.get('/posts/featured'),
 
   // Gallery
   getGallery: (params?: any) => api.get('/gallery', { params }),
@@ -101,9 +97,6 @@ export const userApi = {
   // Events
   registerForEvent: (id: string) => api.post(`/events/${id}/register`),
 
-  // Posts
-  addComment: (id: string, text: string) => api.post(`/posts/${id}/comments`, { text }),
-  likePost: (id: string) => api.post(`/posts/${id}/like`),
 
   // Volunteers
   getProfile: () => api.get('/volunteers/profile'),
@@ -133,11 +126,6 @@ export const adminApi = {
   updateEvent: (id: string, data: any) => api.put(`/admin/events/${id}`, data),
   deleteEvent: (id: string) => api.delete(`/admin/events/${id}`),
 
-  // Posts
-  getAllPosts: (params?: any) => api.get('/admin/posts', { params }),
-  createPost: (data: any) => api.post('/admin/posts', data),
-  updatePost: (id: string, data: any) => api.put(`/admin/posts/${id}`, data),
-  deletePost: (id: string) => api.delete(`/admin/posts/${id}`),
 
   // Gallery
   getAllGallery: (params?: any) => api.get('/admin/gallery', { params }),

@@ -36,7 +36,6 @@ configApp(app);
 app.use('/api/auth', (await import('./routes/auth.js')).default);
 app.use('/api/projects', (await import('./routes/projects.js')).default);
 app.use('/api/events', (await import('./routes/events.js')).default);
-app.use('/api/posts', (await import('./routes/posts.js')).default);
 app.use('/api/gallery', (await import('./routes/gallery.js')).default);
 app.use('/api/contact', (await import('./routes/contact.js')).default);
 app.use('/api/admin', (await import('./routes/admin.js')).default);
