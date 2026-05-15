@@ -1,6 +1,0 @@
-Referencia: favicon configurado en frontend/src/app/layout.tsx
-
-- link rel="icon" href="/Gemini_Generated_Image_l9i6p3l9i6p3l9i6p3l9i6.png"
-
-Este archivo .txt no se sirve en el sitio; solo queda como registro.
-

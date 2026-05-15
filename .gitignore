@@ -22,3 +22,6 @@ frontend/.eslintcache
 *.swp
 *.swo
 *.tmp
+
+# Temporal para saltar error de bloqueo
+backend/TODO_MIGRATION.md
