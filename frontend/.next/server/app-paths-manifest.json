@@ -1,7 +1,8 @@
 {
-  "/contacto/page": "app/contacto/page.js",
-  "/page": "app/page.js",
-  "/galeria/page": "app/galeria/page.js",
-  "/eventos/page": "app/eventos/page.js",
-  "/proyectos/page": "app/proyectos/page.js"
+  "/registro/page": "app/registro/page.js",
+  "/participar/page": "app/participar/page.js",
+  "/login/page": "app/login/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/participar/success/page": "app/participar/success/page.js",
+  "/page": "app/page.js"
 }

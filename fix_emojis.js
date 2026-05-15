@@ -1,0 +1,12 @@
+﻿const fs = require('fs');
+let content = fs.readFileSync('c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/frontend/src/app/page.tsx', 'utf8');
+content = content.replace(/ðŸš€/g, '🚀');
+content = content.replace(/ðŸŽ¯/g, '🎯');
+content = content.replace(/ðŸ‘�ï¸�/g, '👁️');
+content = content.replace(/ðŸ¤/g, '🤝');
+content = content.replace(/ðŸŽ‰/g, '🎉');
+content = content.replace(/ðŸŒ¿/g, '🌿');
+content = content.replace(/ðŸ—£ï¸�/g, '🗣️');
+content = content.replace(/ðŸ’–/g, '💖');
+fs.writeFileSync('c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/frontend/src/app/page.tsx', content, 'utf8');
+console.log('Fixed emojis');

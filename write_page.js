@@ -1,15 +1,15 @@
-﻿"use client";
+﻿const fs = require('fs');
+const content = `'use client';
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import HeroSection from "@/components/HeroSection";
-import ProjectsSection from "@/components/ProjectsSection";
-import { useEffect } from "react";
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import HeroSection from '@/components/HeroSection';
+import ProjectsSection from '@/components/ProjectsSection';
+import { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {
-    // Preload scroll animations
-    document.documentElement.classList.add("scroll-smooth");
+    document.documentElement.classList.add('scroll-smooth');
   }, []);
 
   return (
@@ -21,7 +21,7 @@ export default function Home() {
       <ProjectsSection />
 
       {/* Mission Vision Section */}
-      <motion.section
+      <motion.section 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -42,9 +42,8 @@ export default function Home() {
                 Nuestra Misión
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-                Promover el bienestar, la participación ciudadana y el
-                desarrollo de Malambo, creando espacios de unión, solidaridad y
-                oportunidades para todos.
+                Promover el bienestar, la participación ciudadana y el desarrollo de Malambo, 
+                creando espacios de unión, solidaridad y oportunidades para todos.
               </p>
             </motion.div>
 
@@ -61,9 +60,8 @@ export default function Home() {
                   Nuestra Visión
                 </h2>
                 <p className="text-xl leading-relaxed opacity-95">
-                  Ser una comunidad inclusiva, empoderada y solidaria, donde
-                  todos tengan el poder de participar y construir un futuro
-                  mejor sin dejar a nadie atrás.
+                  Ser una comunidad inclusiva, empoderada y solidaria, donde todos tengan el 
+                  poder de participar y construir un futuro mejor sin dejar a nadie atrás.
                 </p>
               </div>
             </motion.div>
@@ -74,7 +72,7 @@ export default function Home() {
       {/* What We Do Section */}
       <section className="py-32 bg-white">
         <div className="container mx-auto px-6">
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -91,33 +89,29 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
-                icon: "🤝",
-                title: "Proyectos Sociales",
-                description:
-                  "Actividades que mejoran la calidad de vida de las personas en situaciones vulnerables.",
-                color: "from-pink-500 to-pink-600",
+                icon: '🤝',
+                title: 'Proyectos Sociales',
+                description: 'Actividades que mejoran la calidad de vida de las personas en situaciones vulnerables.',
+                color: 'from-pink-500 to-pink-600'
               },
               {
-                icon: "🎉",
-                title: "Eventos y Actividades",
-                description:
-                  "Cultura, deporte, educación y recreación para toda la familia.",
-                color: "from-purple-500 to-purple-600",
+                icon: '🎉',
+                title: 'Eventos y Actividades',
+                description: 'Cultura, deporte, educación y recreación para toda la familia.',
+                color: 'from-purple-500 to-purple-600'
               },
               {
-                icon: "🌿",
-                title: "Cuidado del Entorno",
-                description:
-                  "Iniciativas ambientales y embellecimiento urbano para un Malambo más verde.",
-                color: "from-emerald-500 to-emerald-600",
+                icon: '🌿',
+                title: 'Cuidado del Entorno',
+                description: 'Iniciativas ambientales y embellecimiento urbano para un Malambo más verde.',
+                color: 'from-emerald-500 to-emerald-600'
               },
               {
-                icon: "🗣️",
-                title: "Participación Ciudadana",
-                description:
-                  "Espacios donde las personas pueden expresar su voz y tomar decisiones.",
-                color: "from-blue-500 to-blue-600",
-              },
+                icon: '🗣️',
+                title: 'Participación Ciudadana',
+                description: 'Espacios donde las personas pueden expresar su voz y tomar decisiones.',
+                color: 'from-blue-500 to-blue-600'
+              }
             ].map((card, index) => (
               <motion.div
                 key={card.title}
@@ -128,9 +122,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05, y: -10 }}
                 className="group cursor-pointer p-10 rounded-3xl bg-gradient-to-br bg-white shadow-xl hover:shadow-2xl border border-gray-100 hover:border-pink-200 transition-all duration-500 hover:-translate-y-2"
               >
-                <div
-                  className={`text-5xl mb-6 group-hover:scale-110 transition-transform duration-300`}
-                >
+                <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   {card.icon}
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-pink-600 transition-colors">
@@ -146,22 +138,21 @@ export default function Home() {
       </section>
 
       {/* Inspirational Quote */}
-      <motion.section
+      <motion.section 
         className="py-32 bg-gradient-to-r from-pink-600 via-purple-600 to-pink-500 text-white"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
       >
         <div className="container mx-auto px-6 text-center">
-          <motion.div
+          <motion.div 
             initial={{ scale: 0.9 }}
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
             className="max-w-4xl mx-auto"
           >
             <div className="text-2xl md:text-3xl font-light italic mb-8 opacity-90">
-              "Cada pequeña acción cuenta. Juntos hacemos de Malambo un mejor
-              lugar para vivir."
+              "Cada pequeña acción cuenta. Juntos hacemos de Malambo un mejor lugar para vivir."
             </div>
             <div className="text-6xl">💖</div>
           </motion.div>
@@ -171,7 +162,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-32 bg-white">
         <div className="container mx-auto px-6 text-center">
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -181,8 +172,7 @@ export default function Home() {
               ¿Listo para unirte?
             </h2>
             <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Tu participación hace la diferencia. Únete a nuestra comunidad y
-              sé parte del cambio.
+              Tu participación hace la diferencia. Únete a nuestra comunidad y sé parte del cambio.
             </p>
             <div className="flex justify-center">
               <Link href="/registro">
@@ -191,7 +181,7 @@ export default function Home() {
                   whileTap={{ scale: 0.95 }}
                   className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-6 px-12 rounded-2xl text-xl shadow-2xl hover:shadow-3xl transition-all duration-300"
                 >
-                  Registrarse como Voluntario
+                  🚀 Registrarse como Voluntario
                 </motion.button>
               </Link>
             </div>
@@ -201,3 +191,6 @@ export default function Home() {
     </main>
   );
 }
+`;
+fs.writeFileSync('c:/Users/andre/OneDrive/Documentos/WEB FUNDACION/frontend/src/app/page.tsx', content, 'utf8');
+console.log('Archivo guardado correctamente');
