@@ -13,6 +13,7 @@ import AdminProjectsCRUD from '@/components/admin/AdminProjectsCRUD'
 import AdminEventsCRUD from '@/components/admin/AdminEventsCRUD'
 import AdminGalleryCRUD from '@/components/admin/AdminGalleryCRUD'
 import AdminContactsCRUD from '@/components/admin/AdminContactsCRUD'
+import AdminParticipationsCRUD from '@/components/admin/AdminParticipationsCRUD'
 import { useAuthStore } from '@/store/authStore'
 import { adminApi } from '@/lib/api'
 
@@ -40,13 +41,14 @@ export default function AdminPage() {
   
   const { data: galleryData, refetch: refetchGallery } = useQuery(['adminGallery'], () => adminApi.getAllGallery().then(res => res.data))
   const { data: contactsData, refetch: refetchContacts } = useQuery(['adminContacts'], () => adminApi.getAllContacts().then(res => res.data))
+  const { data: participationsData, refetch: refetchParticipations } = useQuery(['adminParticipations'], () => adminApi.getAllParticipations().then(res => res.data))
 
   const getCount = (tab?: string) => {
     const t = tab || activeTab
     switch (t) {
       case 'projects': return projectsData?.projects?.length ?? 0
       case 'events': return eventsData?.events?.length ?? 0
-      case 'participations': return 0
+      case 'participations': return participationsData?.participations?.filter((p: any) => p.status === 'pending').length ?? 0
       case 'gallery': return galleryData?.gallery?.length ?? 0
       case 'contacts': return contactsData?.contacts?.filter((c: any) => !c.is_read).length ?? 0
       default: return 0
@@ -234,6 +236,8 @@ export default function AdminPage() {
           <AdminEventsCRUD />
         ) : activeTab === 'gallery' ? (
           <AdminGalleryCRUD />
+        ) : activeTab === 'participations' ? (
+          <AdminParticipationsCRUD />
         ) : activeTab === 'contacts' ? (
           <AdminContactsCRUD />
         ) : (
