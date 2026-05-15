@@ -1,5 +1,4 @@
 {
-  "/admin/page": "app/admin/page.js",
   "/page": "app/page.js",
   "/privacidad/page": "app/privacidad/page.js",
   "/tratamiento-datos/page": "app/tratamiento-datos/page.js",

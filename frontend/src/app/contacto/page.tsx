@@ -79,7 +79,7 @@ export default function ContactoPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Teléfono</h3>
-                      <p className="text-white/80">+57 300 123 4567</p>
+                      <p className="text-white/80">312 5812294</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -88,7 +88,7 @@ export default function ContactoPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Correo Electrónico</h3>
-                      <p className="text-white/80">hola@malambosonrie.org</p>
+                      <p className="text-white/80">malambosonrie@gmail.com</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
