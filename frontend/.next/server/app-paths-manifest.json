@@ -1,8 +1,5 @@
 {
-  "/registro/page": "app/registro/page.js",
-  "/participar/success/page": "app/participar/success/page.js",
-  "/page": "app/page.js",
-  "/privacidad/page": "app/privacidad/page.js",
-  "/tratamiento-datos/page": "app/tratamiento-datos/page.js",
-  "/terminos/page": "app/terminos/page.js"
+  "/eventos/page": "app/eventos/page.js",
+  "/proyectos/page": "app/proyectos/page.js",
+  "/page": "app/page.js"
 }
