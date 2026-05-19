@@ -65,10 +65,6 @@ npm install
 npm run dev     # Start development server on port 5000
 ```
 
-**Default Admin Credentials:**
-- Email: `admin@malambosonrie.org`
-- Password: `admin123`
-
 ### Frontend Setup
 
 ```bash
@@ -155,21 +151,6 @@ WEB FUNDACION/
 
 ---
 
-## Environment Variables
-
-### Backend (.env)
-```env
-PORT=5000
-PGHOST=aws-0-us-west-2.pooler.supabase.com
-PGUSER=postgres.fulgeedluudhpmglteqp
-PGPASSWORD=your-password
-PGDATABASE=postgres
-PGPORT=5432
-JWT_SECRET=your-super-secret-key
-JWT_EXPIRE=7d
-ADMIN_EMAIL=admin@malambosonrie.org
-NODE_ENV=development
-```
 
 ---
 
